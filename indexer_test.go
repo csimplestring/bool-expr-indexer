@@ -2,6 +2,8 @@ package main
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_kIndexTable_Add(t *testing.T) {
@@ -61,6 +63,7 @@ func Test_kIndexTable_Add(t *testing.T) {
 }
 
 func Test_sortPostingList(t *testing.T) {
+
 	p := PostingList{
 		&PostingItem{ConjunctionID: 2, Contains: true},
 		&PostingItem{ConjunctionID: 1, Contains: true},
@@ -70,4 +73,12 @@ func Test_sortPostingList(t *testing.T) {
 
 	sortPostingList(p)
 
+	assert.Equal(t, int64(1), p[0].ConjunctionID)
+	assert.Equal(t, false, p[0].Contains)
+	assert.Equal(t, int64(1), p[1].ConjunctionID)
+	assert.Equal(t, true, p[1].Contains)
+	assert.Equal(t, int64(2), p[2].ConjunctionID)
+	assert.Equal(t, true, p[2].Contains)
+	assert.Equal(t, int64(3), p[3].ConjunctionID)
+	assert.Equal(t, true, p[3].Contains)
 }
