@@ -5,7 +5,7 @@ package main
 // age < 40 ---> age = 10, age = 20, age = 30, the granularity is 10.
 // TODO: for longer range values such as dates, using a hierarchy structure to convert
 type Attribute struct {
-	Key      string
+	Name     string
 	Values   []string
 	Contains bool
 }
