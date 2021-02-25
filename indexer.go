@@ -1,46 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"sort"
 )
 
-// Attribute is the pair of key-value, e.g., age:10, representing 'belongs to'
-// The value here is discrete, but for range values, like age < 40, we can convert it into multiple pairs:
-// age < 40 ---> age = 10, age = 20, age = 30, the granularity is 10.
-// TODO: for longer range values such as dates, using a hierarchy structure to convert
-type Attribute struct {
-	Key       string
-	Value     []string
-	BelongsTo bool
-}
-
-// Conjunction consists of a slice of Attributes, which are combined with 'AND' logic.
-type Conjunction struct {
-	ID         int64
-	Attributes []*Attribute
-	kSize      int
-}
-
-// GetKSize ...
-func (c *Conjunction) GetKSize() int {
-	return c.kSize
-}
-
-// NewConjunction creates a new Conjunction
-func NewConjunction(ID int64, attrs []*Attribute) *Conjunction {
-	ksize := 0
-	for _, a := range attrs {
-		if a.BelongsTo {
-			ksize++
-		}
-	}
-	return &Conjunction{
-		ID:         ID,
-		Attributes: attrs,
-		kSize:      ksize,
-	}
-}
+// type ConjunctionDecomposer interface {
+// 	Decompose(c *Conjunction) (*IndexKey, *)
+// }
 
 // IndexKey is the key in KIndexes table
 type IndexKey struct {
@@ -52,51 +18,58 @@ type IndexKey struct {
 // PostingItem store conjunction-id, belongs-to flag, serving as inverted index pointing to Conjunction
 type PostingItem struct {
 	ConjunctionID int64
-	BelongsTo     bool
+	Contains      bool
 	score         int
 }
 
 // PostingList is a list of PostingItem
-type PostingList []PostingItem
+type PostingList []*PostingItem
 
-type kIndex struct {
-	m map[string]PostingList
+type postingIndex struct {
+	m map[IndexKey]PostingList
 }
 
-func newKIndex() *kIndex {
-	return &kIndex{
-		m: make(map[string]PostingList),
+func newPostingIndex() *postingIndex {
+	return &postingIndex{
+		m: make(map[IndexKey]PostingList),
 	}
 }
 
-var zeroSizeIndex string = "null:null:0"
+var zeroSizeIndex IndexKey = IndexKey{
+	Key:   "",
+	Value: "",
+	score: 0,
+}
 
-func (k *kIndex) createKeys(a *Attribute) []string {
-	var keys []string
-	for _, v := range a.Value {
-		keys = append(keys, fmt.Sprintf("%s,%s", a.Key, v))
+func (k *postingIndex) createKeys(a *Attribute) []*IndexKey {
+	var keys []*IndexKey
+	for _, v := range a.Values {
+		keys = append(keys, &IndexKey{
+			Key:   a.Key,
+			Value: v,
+		})
 	}
 	return keys
 }
 
-func (k *kIndex) Add(c *Conjunction) {
+func (k *postingIndex) Add(c *Conjunction) {
 
 	for _, attr := range c.Attributes {
 		for _, key := range k.createKeys(attr) {
-			pList := k.m[key]
-			pList = append(pList, PostingItem{
+			pList := k.m[*key]
+			pList = append(pList, &PostingItem{
 				ConjunctionID: c.ID,
-				BelongsTo:     attr.BelongsTo,
+				Contains:      attr.Contains,
 			})
-			k.m[key] = pList
+			k.m[*key] = pList
 		}
 	}
 
 	if c.kSize == 0 {
 		pList := k.m[zeroSizeIndex]
-		pList = append(pList, PostingItem{
+		pList = append(pList, &PostingItem{
 			ConjunctionID: c.ID,
-			BelongsTo:     true,
+			Contains:      true,
 		})
 		k.m[zeroSizeIndex] = pList
 	}
@@ -104,13 +77,13 @@ func (k *kIndex) Add(c *Conjunction) {
 
 type kIndexTable struct {
 	maxKSize int
-	store    map[int]*kIndex
+	store    map[int]*postingIndex
 }
 
 func newKIndexTable() *kIndexTable {
 	return &kIndexTable{
 		maxKSize: 0,
-		store:    make(map[int]*kIndex),
+		store:    make(map[int]*postingIndex),
 	}
 }
 
@@ -123,23 +96,28 @@ func (k *kIndexTable) Add(c *Conjunction) {
 
 	kidx, exist := k.store[ksize]
 	if !exist {
-		kidx = newKIndex()
+		kidx = newPostingIndex()
 		k.store[ksize] = kidx
 	}
 
 	kidx.Add(c)
 }
 
+func sortPostingList(p PostingList) {
+	sort.Slice(p[:], func(i, j int) bool {
+
+		if p[i].ConjunctionID != p[j].ConjunctionID {
+			return p[i].ConjunctionID < p[j].ConjunctionID
+		}
+
+		return !p[i].Contains && p[j].Contains
+	})
+}
+
 func (k *kIndexTable) Build() {
 	for _, v := range k.store {
 		for _, pList := range v.m {
-			sort.Slice(pList[:], func(i, j int) bool {
-				if pList[i].ConjunctionID == pList[j].ConjunctionID {
-					return !pList[i].BelongsTo && pList[j].BelongsTo
-				}
-
-				return pList[i].ConjunctionID < pList[j].ConjunctionID
-			})
+			sortPostingList(pList)
 		}
 	}
 }

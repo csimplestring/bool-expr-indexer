@@ -10,52 +10,64 @@ func Test_kIndexTable_Add(t *testing.T) {
 	k.Add(NewConjunction(
 		1,
 		[]*Attribute{
-			{Key: "age", Value: []string{"3"}, BelongsTo: true},
-			{Key: "state", Value: []string{"NY"}, BelongsTo: true},
+			{Key: "age", Values: []string{"3"}, Contains: true},
+			{Key: "state", Values: []string{"NY"}, Contains: true},
 		},
 	))
 
 	k.Add(NewConjunction(
 		2,
 		[]*Attribute{
-			{Key: "age", Value: []string{"3"}, BelongsTo: true},
-			{Key: "gender", Value: []string{"F"}, BelongsTo: true},
+			{Key: "age", Values: []string{"3"}, Contains: true},
+			{Key: "gender", Values: []string{"F"}, Contains: true},
 		},
 	))
 
 	k.Add(NewConjunction(
 		3,
 		[]*Attribute{
-			{Key: "age", Value: []string{"3"}, BelongsTo: true},
-			{Key: "gender", Value: []string{"M"}, BelongsTo: true},
-			{Key: "state", Value: []string{"CA"}, BelongsTo: false},
+			{Key: "age", Values: []string{"3"}, Contains: true},
+			{Key: "gender", Values: []string{"M"}, Contains: true},
+			{Key: "state", Values: []string{"CA"}, Contains: false},
 		},
 	))
 
 	k.Add(NewConjunction(
 		4,
 		[]*Attribute{
-			{Key: "state", Value: []string{"CA"}, BelongsTo: true},
-			{Key: "gender", Value: []string{"M"}, BelongsTo: true},
+			{Key: "state", Values: []string{"CA"}, Contains: true},
+			{Key: "gender", Values: []string{"M"}, Contains: true},
 		},
 	))
 
 	k.Add(NewConjunction(
 		5,
 		[]*Attribute{
-			{Key: "age", Value: []string{"3", "4"}, BelongsTo: true},
+			{Key: "age", Values: []string{"3", "4"}, Contains: true},
 		},
 	))
 
 	k.Add(NewConjunction(
 		6,
 		[]*Attribute{
-			{Key: "state", Value: []string{"CA", "NY"}, BelongsTo: false},
+			{Key: "state", Values: []string{"CA", "NY"}, Contains: false},
 		},
 	))
 
 	k.Build()
 
 	k.MaxKSize()
+
+}
+
+func Test_sortPostingList(t *testing.T) {
+	p := PostingList{
+		&PostingItem{ConjunctionID: 2, Contains: true},
+		&PostingItem{ConjunctionID: 1, Contains: true},
+		&PostingItem{ConjunctionID: 3, Contains: true},
+		&PostingItem{ConjunctionID: 1, Contains: false},
+	}
+
+	sortPostingList(p)
 
 }
