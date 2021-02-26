@@ -25,9 +25,9 @@ type Key struct {
 
 // PostingItem store conjunction-id, belongs-to flag, serving as inverted index pointing to Conjunction
 type PostingItem struct {
-	ConjunctionID int64
-	Contains      bool
-	score         int
+	CID      int64
+	Contains bool
+	score    int
 }
 
 // PostingList is a list of PostingItem
@@ -46,8 +46,8 @@ func (p *PostingList) append(item *PostingItem) {
 func (p *PostingList) sort() {
 	sort.Slice(p.Items[:], func(i, j int) bool {
 
-		if p.Items[i].ConjunctionID != p.Items[j].ConjunctionID {
-			return p.Items[i].ConjunctionID < p.Items[j].ConjunctionID
+		if p.Items[i].CID != p.Items[j].CID {
+			return p.Items[i].CID < p.Items[j].CID
 		}
 
 		return !p.Items[i].Contains && p.Items[j].Contains
