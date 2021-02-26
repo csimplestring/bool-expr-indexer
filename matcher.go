@@ -26,10 +26,10 @@ func (m *matcher) Match(k *kIndexTable, labels Labels) []int64 {
 			continue
 		}
 
+		pLists.sortByCurrent()
 		for pLists.c[K-1].current() != eolItem {
 			var nextID int64
 
-			pLists.sortByCurrent()
 			if pLists.c[0].current().CID == pLists.c[K-1].current().CID {
 
 				if pLists.c[0].current().Contains == false {
