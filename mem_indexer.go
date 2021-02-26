@@ -244,10 +244,6 @@ func (p *postingListCursor) skipTo(ID int64) {
 	p.cur = i
 }
 
-func (p *postingListCursor) next() {
-	p.cur++
-}
-
 func (k *kIndexTable) Match(labels Labels) []int64 {
 	var results []int64
 
