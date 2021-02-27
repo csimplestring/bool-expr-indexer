@@ -1,86 +1,74 @@
 package main
 
-// import "sort"
+import "sort"
 
-// // PostingList is a list of PostingItem
-// type PostingList struct {
-// 	Items []*PostingItem
-// 	cur   int
-// }
+type postingLists struct {
+	c []*pCursor
+}
 
-// func newPostingList() *PostingList {
-// 	return &PostingList{
-// 		cur: 0,
-// 	}
-// }
+func newPostingLists(l []*PostingList) *postingLists {
+	var c []*pCursor
 
-// func (p *PostingList) append(item *PostingItem) {
-// 	p.Items = append(p.Items, item)
-// }
+	for _, v := range l {
+		c = append(c, newCursor(v))
+	}
+	return &postingLists{
+		c: c,
+	}
+}
 
-// func (p *PostingList) sort() {
-// 	sort.Slice(p.Items[:], func(i, j int) bool {
+func (p *postingLists) len() int {
+	return len(p.c)
+}
 
-// 		if p.Items[i].CID != p.Items[j].CID {
-// 			return p.Items[i].CID < p.Items[j].CID
-// 		}
+func (p *postingLists) sortByCurrent() {
+	sort.Slice(p.c[:], func(i, j int) bool {
+		a := p.c[i].current()
+		b := p.c[j].current()
 
-// 		return !p.Items[i].Contains && p.Items[j].Contains
-// 	})
-// }
+		// fix, eol item must be in the tail
+		if a == eolItem && b != eolItem {
+			return false
+		}
+		if a != eolItem && b == eolItem {
+			return true
+		}
 
-// func (p *PostingList) rewind() {
-// 	p.cur = 0
-// }
+		if a.CID != b.CID {
+			return a.CID < b.CID
+		}
 
-// func (p *PostingList) current() *PostingItem {
-// 	if p.cur >= len(p.Items) {
-// 		return eolItem
-// 	}
+		return !a.Contains && b.Contains
+	})
+}
 
-// 	return p.Items[p.cur]
-// }
+type pCursor struct {
+	ref  *PostingList
+	size int
+	cur  int
+}
 
-// func (p *PostingList) skipTo(ID int64) {
-// 	i := p.cur
-// 	for i < len(p.Items) && p.Items[i].CID < ID {
-// 		i++
-// 	}
+func newCursor(ref *PostingList) *pCursor {
+	return &pCursor{
+		ref:  ref,
+		size: len(ref.Items),
+		cur:  0,
+	}
+}
 
-// 	p.cur = i
-// }
+func (p *pCursor) current() *PostingItem {
+	if p.cur >= p.size {
+		return eolItem
+	}
 
-// type postingLists struct {
-// 	c []*PostingList
-// }
+	return p.ref.Items[p.cur]
+}
 
-// func newPostingLists(l []*PostingList) *postingLists {
-// 	return &postingLists{
-// 		c: l,
-// 	}
-// }
+func (p *pCursor) skipTo(ID int64) {
+	i := p.cur
+	for i < p.size && p.ref.Items[i].CID < ID {
+		i++
+	}
 
-// func (p *postingLists) len() int {
-// 	return len(p.c)
-// }
-
-// func (p *postingLists) sortByCurrent() {
-// 	sort.Slice(p.c[:], func(i, j int) bool {
-// 		a := p.c[i].current()
-// 		b := p.c[j].current()
-
-// 		// fix, eol item must be in the tail
-// 		if a == eolItem && b != eolItem {
-// 			return false
-// 		}
-// 		if a != eolItem && b == eolItem {
-// 			return true
-// 		}
-
-// 		if a.CID != b.CID {
-// 			return a.CID < b.CID
-// 		}
-
-// 		return !a.Contains && b.Contains
-// 	})
-// }
+	p.cur = i
+}
