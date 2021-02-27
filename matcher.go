@@ -127,7 +127,7 @@ func (p *postingListCursor) current() *PostingItem {
 
 func (p *postingListCursor) skipTo(ID int64) {
 	i := p.cur
-	for i < p.size && p.ref.Items[i].CID != ID {
+	for i < p.size && p.ref.Items[i].CID < ID {
 		i++
 	}
 
