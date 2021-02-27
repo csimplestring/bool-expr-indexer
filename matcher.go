@@ -64,14 +64,14 @@ func (m *matcher) Match(k *kIndexTable, labels Labels) []int64 {
 }
 
 type postingLists struct {
-	c []*postingListCursor
+	c []*pCursor
 }
 
 func newPostingLists(l []*PostingList) *postingLists {
-	var c []*postingListCursor
+	var c []*pCursor
 
 	for _, v := range l {
-		c = append(c, newPostingListCursor(v))
+		c = append(c, newCursor(v))
 	}
 	return &postingLists{
 		c: c,
@@ -103,21 +103,21 @@ func (p *postingLists) sortByCurrent() {
 	})
 }
 
-type postingListCursor struct {
+type pCursor struct {
 	ref  *PostingList
 	size int
 	cur  int
 }
 
-func newPostingListCursor(ref *PostingList) *postingListCursor {
-	return &postingListCursor{
+func newCursor(ref *PostingList) *pCursor {
+	return &pCursor{
 		ref:  ref,
 		size: len(ref.Items),
 		cur:  0,
 	}
 }
 
-func (p *postingListCursor) current() *PostingItem {
+func (p *pCursor) current() *PostingItem {
 	if p.cur >= p.size {
 		return eolItem
 	}
@@ -125,7 +125,7 @@ func (p *postingListCursor) current() *PostingItem {
 	return p.ref.Items[p.cur]
 }
 
-func (p *postingListCursor) skipTo(ID int64) {
+func (p *pCursor) skipTo(ID int64) {
 	i := p.cur
 	for i < p.size && p.ref.Items[i].CID < ID {
 		i++

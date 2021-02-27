@@ -1,5 +1,7 @@
 package main
 
+import "math"
+
 // zKey is zero boolean key placeholder
 var zKey *Key = &Key{
 	Name:  "null",
@@ -7,7 +9,10 @@ var zKey *Key = &Key{
 	score: 0,
 }
 
-var eolItem *PostingItem = &PostingItem{}
+var eolItem *PostingItem = &PostingItem{
+	score: 0,
+	CID:   math.MaxInt64,
+}
 
 type memoryIndexer struct {
 	imap map[string]*PostingList
