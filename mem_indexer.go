@@ -10,8 +10,9 @@ var zKey *Key = &Key{
 }
 
 var eolItem *PostingItem = &PostingItem{
-	score: 0,
-	CID:   math.MaxInt64,
+	score:    0,
+	CID:      math.MaxInt64,
+	Contains: true,
 }
 
 type memoryIndexer struct {
