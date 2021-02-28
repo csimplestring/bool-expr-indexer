@@ -65,10 +65,7 @@ func (p *pCursor) current() *PostingItem {
 }
 
 func (p *pCursor) skipTo(ID int64) {
-	i := p.cur
-	for i < p.size && p.ref.Items[i].CID < ID {
-		i++
-	}
-
-	p.cur = i
+	n := len(p.ref.Items)
+	// since p.ref.Items is already sorted in asc order, we do binary search: find the smallest-ID >= ID
+	p.cur = sort.Search(n, func(i int) bool { return p.ref.Items[i].CID >= ID })
 }
