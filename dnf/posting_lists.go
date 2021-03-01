@@ -48,7 +48,7 @@ func newCursor(ref *PostingList) *pCursor {
 	}
 }
 
-func (p *pCursor) current() *PostingItem {
+func (p *pCursor) current() *PostingEntry {
 	if p.cur >= p.size {
 		return eolItem
 	}

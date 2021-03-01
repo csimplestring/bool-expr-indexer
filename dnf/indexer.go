@@ -23,8 +23,8 @@ type Key struct {
 	score int
 }
 
-// PostingItem store conjunction-id, belongs-to flag, serving as inverted index pointing to Conjunction
-type PostingItem struct {
+// PostingEntry store conjunction-id, belongs-to flag, serving as inverted index pointing to Conjunction
+type PostingEntry struct {
 	CID      int64
 	Contains bool
 	score    int
@@ -32,14 +32,14 @@ type PostingItem struct {
 
 // PostingList is a list of PostingItem
 type PostingList struct {
-	Items []*PostingItem
+	Items []*PostingEntry
 }
 
 func newPostingList() *PostingList {
 	return &PostingList{}
 }
 
-func (p *PostingList) append(item *PostingItem) {
+func (p *PostingList) append(item *PostingEntry) {
 	p.Items = append(p.Items, item)
 }
 

@@ -9,7 +9,7 @@ import (
 func Test_sortPostingList(t *testing.T) {
 
 	p := PostingList{
-		Items: []*PostingItem{
+		Items: []*PostingEntry{
 			{CID: 2, Contains: true},
 			{CID: 1, Contains: true},
 			{CID: 3, Contains: true},

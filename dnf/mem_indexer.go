@@ -9,7 +9,7 @@ var zKey *Key = &Key{
 	score: 0,
 }
 
-var eolItem *PostingItem = &PostingItem{
+var eolItem *PostingEntry = &PostingEntry{
 	score:    0,
 	CID:      math.MaxInt64,
 	Contains: true,
@@ -83,7 +83,7 @@ func (m *memoryIndexer) Add(c *Conjunction) error {
 			hash := m.hashKey(key)
 
 			pList := m.createIfAbsent(hash)
-			pList.append(&PostingItem{
+			pList.append(&PostingEntry{
 				CID:      c.ID,
 				Contains: attr.Contains,
 			})
@@ -95,7 +95,7 @@ func (m *memoryIndexer) Add(c *Conjunction) error {
 	if c.kSize == 0 {
 		hash := m.hashKey(zKey)
 		pList := m.createIfAbsent(hash)
-		pList.append(&PostingItem{
+		pList.append(&PostingEntry{
 			CID:      c.ID,
 			Contains: true,
 		})
