@@ -26,14 +26,6 @@ func (p *postingLists) sortByCurrent() {
 		a := p.c[i].current()
 		b := p.c[j].current()
 
-		// fix, eol item must be in the tail
-		if a == eolItem && b != eolItem {
-			return false
-		}
-		if a != eolItem && b == eolItem {
-			return true
-		}
-
 		if a.CID != b.CID {
 			return a.CID < b.CID
 		}
