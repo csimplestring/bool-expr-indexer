@@ -9,7 +9,7 @@ type matcher struct {
 }
 
 func (m *matcher) Match(k *kIndexTable, labels Labels) []int64 {
-	var results []int64
+	results := newInt64Set()
 
 	n := min(len(labels), k.maxKSize)
 
@@ -41,7 +41,7 @@ func (m *matcher) Match(k *kIndexTable, labels Labels) []int64 {
 					}
 
 				} else {
-					results = append(results, pLists.c[K-1].current().CID)
+					results.Add(pLists.c[K-1].current().CID)
 				}
 
 				nextID = pLists.c[K-1].current().CID + 1
@@ -58,5 +58,5 @@ func (m *matcher) Match(k *kIndexTable, labels Labels) []int64 {
 
 	}
 
-	return results
+	return results.ToSlice()
 }
