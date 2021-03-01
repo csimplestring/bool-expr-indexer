@@ -1,12 +1,11 @@
-package main
+package set
 
 import "sync"
 
-func min(a int, b int) int {
-	if a < b {
-		return a
-	}
-	return b
+// Int64Set is the set for int64 element.
+type Int64Set interface {
+	Add(x int64)
+	ToSlice() []int64
 }
 
 type int64Set struct {
@@ -14,7 +13,8 @@ type int64Set struct {
 	sync.RWMutex
 }
 
-func newInt64Set() *int64Set {
+// Int64HashSet creates a new set for int64 element.
+func Int64HashSet() Int64Set {
 	return &int64Set{
 		m: make(map[int64]bool),
 	}

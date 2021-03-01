@@ -1,4 +1,4 @@
-package main
+package dnf
 
 // Attribute is the pair of key-value, e.g., age:10, representing 'belongs to'
 // The value here is discrete, but for range values, like age < 40, we can convert it into multiple pairs:

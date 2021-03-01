@@ -1,4 +1,8 @@
-package main
+package dnf
+
+import (
+	"github.com/csimplestring/bool-expr-indexer/set"
+)
 
 // Matcher finds the matched conjunction ids
 type Matcher interface {
@@ -8,8 +12,15 @@ type Matcher interface {
 type matcher struct {
 }
 
+func min(a int, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
 func (m *matcher) Match(k *kIndexTable, labels Labels) []int64 {
-	results := newInt64Set()
+	results := set.Int64HashSet()
 
 	n := min(len(labels), k.maxKSize)
 

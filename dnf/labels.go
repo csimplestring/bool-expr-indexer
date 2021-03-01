@@ -1,4 +1,4 @@
-package main
+package dnf
 
 // Label is a simple k/v pair: like <age:30>
 type Label struct {
