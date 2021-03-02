@@ -1,7 +1,5 @@
 package dnf
 
-import "sort"
-
 // KSizeIndexer shards the Indexer by conjunction size.
 type KSizeIndexer interface {
 	Build() error
@@ -21,35 +19,4 @@ type Key struct {
 	Name  string
 	Value string
 	score int
-}
-
-// PostingEntry store conjunction-id, belongs-to flag, serving as inverted index pointing to Conjunction
-type PostingEntry struct {
-	CID      int64
-	Contains bool
-	score    int
-}
-
-// PostingList is a list of PostingItem
-type PostingList struct {
-	Items []*PostingEntry
-}
-
-func newPostingList() *PostingList {
-	return &PostingList{}
-}
-
-func (p *PostingList) append(item *PostingEntry) {
-	p.Items = append(p.Items, item)
-}
-
-func (p *PostingList) sort() {
-	sort.Slice(p.Items[:], func(i, j int) bool {
-
-		if p.Items[i].CID != p.Items[j].CID {
-			return p.Items[i].CID < p.Items[j].CID
-		}
-
-		return !p.Items[i].Contains && p.Items[j].Contains
-	})
 }

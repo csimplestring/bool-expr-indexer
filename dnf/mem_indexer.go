@@ -146,7 +146,7 @@ func (k *kIndexTable) MaxKSize() int {
 	return k.maxKSize
 }
 
-func (k *kIndexTable) GetPostingLists(size int, labels Labels) []*PostingList {
+func (k *kIndexTable) GetPostingLists(size int, labels Assignment) []*PostingList {
 	idx := k.sizedIndexes[size]
 	if idx == nil {
 		return nil

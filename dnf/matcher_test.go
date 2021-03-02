@@ -101,7 +101,7 @@ func Test_kIndexTable_Add(t *testing.T) {
 	assert.Equal(t, true, twoIdx.imap["gender:M"].Items[1].Contains)
 
 	matcher := &matcher{}
-	matched := matcher.Match(k, Labels{
+	matched := matcher.Match(k, Assignment{
 		Label{Name: "age", Value: "3"},
 		Label{Name: "state", Value: "CA"},
 		Label{Name: "gender", Value: "M"},

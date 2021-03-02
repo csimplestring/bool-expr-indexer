@@ -6,5 +6,5 @@ type Label struct {
 	Value string
 }
 
-// Labels is a slice of Label, equals to 'assignment S' in the paper
-type Labels []Label
+// Assignment is a slice of Label, equals to 'assignment S' in the paper
+type Assignment []Label

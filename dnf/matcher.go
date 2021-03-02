@@ -6,7 +6,7 @@ import (
 
 // Matcher finds the matched conjunction ids
 type Matcher interface {
-	Match(*kIndexTable, Labels) []int64
+	Match(*kIndexTable, Assignment) []int64
 }
 
 type matcher struct {
@@ -19,7 +19,7 @@ func min(a int, b int) int {
 	return b
 }
 
-func (m *matcher) Match(k *kIndexTable, labels Labels) []int64 {
+func (m *matcher) Match(k *kIndexTable, labels Assignment) []int64 {
 	results := set.Int64HashSet()
 
 	n := min(len(labels), k.maxKSize)
