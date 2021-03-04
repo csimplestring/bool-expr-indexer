@@ -8,7 +8,12 @@ type PostingEntry struct {
 	score         int
 }
 
-// PostingList is a slice of entries
+// SortID returns the CNF ID
+func (p *PostingEntry) SortID() int64 {
+	return p.ID
+}
+
+// PostingList is a slice of unique entries
 type PostingList []*PostingEntry
 
 // PostingLists is a slice of PostingList
