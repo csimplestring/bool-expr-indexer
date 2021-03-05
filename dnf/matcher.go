@@ -19,7 +19,7 @@ func min(a int, b int) int {
 	return b
 }
 
-func (m *matcher) Match(k *kIndexTable, labels Assignment) []int64 {
+func (m *matcher) Match(k *kIndexTable, labels Assignment) []int {
 	results := set.Int64HashSet()
 
 	n := min(len(labels), k.maxKSize)
@@ -37,7 +37,7 @@ func (m *matcher) Match(k *kIndexTable, labels Assignment) []int64 {
 
 		pLists.sortByCurrent()
 		for pLists.c[K-1].current() != eolItem {
-			var nextID int64
+			var nextID int
 
 			if pLists.c[0].current().CID == pLists.c[K-1].current().CID {
 

@@ -4,7 +4,7 @@ import "sort"
 
 // PostingEntry store conjunction-id, belongs-to flag, serving as inverted index pointing to Conjunction
 type PostingEntry struct {
-	CID      int64
+	CID      int
 	Contains bool
 	score    int
 }
@@ -87,7 +87,7 @@ func (p *pCursor) current() *PostingEntry {
 	return p.ref.Items[p.cur]
 }
 
-func (p *pCursor) skipTo(ID int64) {
+func (p *pCursor) skipTo(ID int) {
 	n := len(p.ref.Items)
 	// since p.ref.Items is already sorted in asc order, we do binary search: find the smallest-ID >= ID
 	p.cur = sort.Search(n, func(i int) bool { return p.ref.Items[i].CID >= ID })

@@ -12,7 +12,7 @@ type Attribute struct {
 
 // Conjunction consists of a slice of Attributes, which are combined with 'AND' logic.
 type Conjunction struct {
-	ID         int64
+	ID         int
 	Attributes []*Attribute
 	kSize      int
 }
@@ -23,7 +23,7 @@ func (c *Conjunction) GetKSize() int {
 }
 
 // NewConjunction creates a new Conjunction
-func NewConjunction(ID int64, attrs []*Attribute) *Conjunction {
+func NewConjunction(ID int, attrs []*Attribute) *Conjunction {
 	ksize := 0
 	for _, a := range attrs {
 		if a.Contains {
