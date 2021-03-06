@@ -1,7 +1,6 @@
 package dnf
 
 import (
-	"fmt"
 	"math"
 )
 
@@ -12,6 +11,7 @@ var zKey *Key = &Key{
 	score: 0,
 }
 
+// eolItem means end-of-list item, used as the end of a posting list.
 var eolItem *PostingEntry = &PostingEntry{
 	score:    0,
 	CID:      math.MaxInt64,
@@ -19,17 +19,19 @@ var eolItem *PostingEntry = &PostingEntry{
 }
 
 type memoryIndexer struct {
-	imap map[string]*PostingList
+	imap          map[uint64]*PostingList
+	attributeMeta AttributeMetadataStorer
 }
 
 // NewMemoryIndex creates a new memory indexer, exposed as a public api.
-func NewMemoryIndex() Indexer {
-	return newMemoryIndex()
+func NewMemoryIndex(attributeMeta AttributeMetadataStorer) Indexer {
+	return newMemoryIndex(attributeMeta)
 }
 
-func newMemoryIndex() *memoryIndexer {
+func newMemoryIndex(attributeMeta AttributeMetadataStorer) *memoryIndexer {
 	return &memoryIndexer{
-		imap: make(map[string]*PostingList),
+		imap:          make(map[uint64]*PostingList),
+		attributeMeta: attributeMeta,
 	}
 }
 
@@ -44,8 +46,8 @@ func (m *memoryIndexer) createKeys(a *Attribute) []*Key {
 	return keys
 }
 
-func (m *memoryIndexer) hashKey(k *Key) string {
-	return fmt.Sprintf("%d:%d", k.Name, k.Value)
+func (m *memoryIndexer) hashKey(k *Key) uint64 {
+	return uint64(k.Name)<<32 | uint64(k.Value)
 }
 
 func (m *memoryIndexer) Build() error {
@@ -60,7 +62,7 @@ func (m *memoryIndexer) Get(k *Key) *PostingList {
 	return m.imap[h]
 }
 
-func (m *memoryIndexer) createIfAbsent(hash string) *PostingList {
+func (m *memoryIndexer) createIfAbsent(hash uint64) *PostingList {
 	v := m.get(hash)
 	if v == nil {
 		p := newPostingList()
@@ -70,11 +72,11 @@ func (m *memoryIndexer) createIfAbsent(hash string) *PostingList {
 	return v
 }
 
-func (m *memoryIndexer) get(hash string) *PostingList {
+func (m *memoryIndexer) get(hash uint64) *PostingList {
 	return m.imap[hash]
 }
 
-func (m *memoryIndexer) put(hash string, p *PostingList) {
+func (m *memoryIndexer) put(hash uint64, p *PostingList) {
 	m.imap[hash] = p
 }
 
@@ -109,14 +111,16 @@ func (m *memoryIndexer) Add(c *Conjunction) error {
 }
 
 type kIndexTable struct {
-	maxKSize     int
-	sizedIndexes map[int]Indexer
+	maxKSize      int
+	attributeMeta AttributeMetadataStorer
+	sizedIndexes  map[int]Indexer
 }
 
-func newKIndexTable() *kIndexTable {
+func newKIndexTable(attributeMeta AttributeMetadataStorer) *kIndexTable {
 	return &kIndexTable{
-		maxKSize:     0,
-		sizedIndexes: make(map[int]Indexer),
+		maxKSize:      0,
+		sizedIndexes:  make(map[int]Indexer),
+		attributeMeta: attributeMeta,
 	}
 }
 
@@ -129,7 +133,7 @@ func (k *kIndexTable) Add(c *Conjunction) {
 
 	kidx, exist := k.sizedIndexes[ksize]
 	if !exist {
-		kidx = newMemoryIndex()
+		kidx = newMemoryIndex(k.attributeMeta)
 		k.sizedIndexes[ksize] = kidx
 	}
 
@@ -157,9 +161,18 @@ func (k *kIndexTable) GetPostingLists(size int, labels Assignment) []*PostingLis
 
 	var candidates []*PostingList
 	for _, label := range labels {
+		name, found := k.attributeMeta.GetNameID(label.Name)
+		if !found {
+			return nil
+		}
+		value, found := k.attributeMeta.GetValueID(label.Name, label.Value)
+		if !found {
+			return nil
+		}
+
 		k := &Key{
-			Name:  label.Name,
-			Value: label.Value,
+			Name:  name,
+			Value: value,
 		}
 		p := idx.Get(k)
 		if p == nil {

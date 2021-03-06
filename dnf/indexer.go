@@ -16,7 +16,7 @@ type Indexer interface {
 
 // Key is the key representing an attribute, e.g., <age, 10>
 type Key struct {
-	Name  int
-	Value int
+	Name  uint32
+	Value uint32
 	score int
 }
