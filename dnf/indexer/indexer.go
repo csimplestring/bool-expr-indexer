@@ -8,7 +8,8 @@ import (
 type KSizeIndexer interface {
 	Build() error
 	MaxKSize() int
-	Get(size int) Indexer
+	Add(c *expr.Conjunction)
+	Match(assignment expr.Assignment) []int
 }
 
 // Indexer actually stores the reverted index: key -> posting list

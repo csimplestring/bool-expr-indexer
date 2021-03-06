@@ -6,7 +6,7 @@ import (
 )
 
 type memoryIndexer struct {
-	imap          map[uint64]*PostingList
+	invertedMap   map[uint64]*PostingList
 	attributeMeta expr.AttributeMetadataStorer
 }
 
@@ -17,7 +17,7 @@ func NewMemoryIndex(attributeMeta expr.AttributeMetadataStorer) Indexer {
 
 func newMemoryIndex(attributeMeta expr.AttributeMetadataStorer) *memoryIndexer {
 	return &memoryIndexer{
-		imap:          make(map[uint64]*PostingList),
+		invertedMap:   make(map[uint64]*PostingList),
 		attributeMeta: attributeMeta,
 	}
 }
@@ -38,7 +38,7 @@ func (m *memoryIndexer) hashKey(k *key) uint64 {
 }
 
 func (m *memoryIndexer) Build() error {
-	for _, pList := range m.imap {
+	for _, pList := range m.invertedMap {
 		pList.sort()
 	}
 	return nil
@@ -46,7 +46,7 @@ func (m *memoryIndexer) Build() error {
 
 func (m *memoryIndexer) Get(k *key) *PostingList {
 	h := m.hashKey(k)
-	return m.imap[h]
+	return m.invertedMap[h]
 }
 
 func (m *memoryIndexer) createIfAbsent(hash uint64) *PostingList {
@@ -60,11 +60,11 @@ func (m *memoryIndexer) createIfAbsent(hash uint64) *PostingList {
 }
 
 func (m *memoryIndexer) get(hash uint64) *PostingList {
-	return m.imap[hash]
+	return m.invertedMap[hash]
 }
 
 func (m *memoryIndexer) put(hash uint64, p *PostingList) {
-	m.imap[hash] = p
+	m.invertedMap[hash] = p
 }
 
 func (m *memoryIndexer) Add(c *expr.Conjunction) error {
@@ -103,7 +103,7 @@ type kIndexTable struct {
 	sizedIndexes  map[int]Indexer
 }
 
-func newKIndexTable(attributeMeta expr.AttributeMetadataStorer) *kIndexTable {
+func newKIndexTable(attributeMeta expr.AttributeMetadataStorer) KSizeIndexer {
 	return &kIndexTable{
 		maxKSize:      0,
 		sizedIndexes:  make(map[int]Indexer),
