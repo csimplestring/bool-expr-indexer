@@ -5,24 +5,24 @@ import (
 	"github.com/csimplestring/bool-expr-indexer/set"
 )
 
-type memoryIndexer struct {
+type indexShard struct {
 	invertedMap   map[uint64]*PostingList
 	attributeMeta expr.AttributeMetadataStorer
 }
 
 // NewMemoryIndex creates a new memory indexer, exposed as a public api.
-func NewMemoryIndex(attributeMeta expr.AttributeMetadataStorer) Indexer {
-	return newMemoryIndex(attributeMeta)
-}
+// func NewMemoryIndex(attributeMeta expr.AttributeMetadataStorer) Indexer {
+// 	return newMemoryIndex(attributeMeta)
+// }
 
-func newMemoryIndex(attributeMeta expr.AttributeMetadataStorer) *memoryIndexer {
-	return &memoryIndexer{
+func newIndexShard(attributeMeta expr.AttributeMetadataStorer) *indexShard {
+	return &indexShard{
 		invertedMap:   make(map[uint64]*PostingList),
 		attributeMeta: attributeMeta,
 	}
 }
 
-func (m *memoryIndexer) createKeys(a *expr.Attribute) []*key {
+func (m *indexShard) createKeys(a *expr.Attribute) []*key {
 	var keys []*key
 	for _, v := range a.Values {
 		keys = append(keys, &key{
@@ -33,23 +33,23 @@ func (m *memoryIndexer) createKeys(a *expr.Attribute) []*key {
 	return keys
 }
 
-func (m *memoryIndexer) hashKey(k *key) uint64 {
+func (m *indexShard) hashKey(k *key) uint64 {
 	return uint64(k.Name)<<32 | uint64(k.Value)
 }
 
-func (m *memoryIndexer) Build() error {
+func (m *indexShard) Build() error {
 	for _, pList := range m.invertedMap {
 		pList.sort()
 	}
 	return nil
 }
 
-func (m *memoryIndexer) Get(k *key) *PostingList {
+func (m *indexShard) Get(k *key) *PostingList {
 	h := m.hashKey(k)
 	return m.invertedMap[h]
 }
 
-func (m *memoryIndexer) createIfAbsent(hash uint64) *PostingList {
+func (m *indexShard) createIfAbsent(hash uint64) *PostingList {
 	v := m.get(hash)
 	if v == nil {
 		p := newPostingList()
@@ -59,15 +59,15 @@ func (m *memoryIndexer) createIfAbsent(hash uint64) *PostingList {
 	return v
 }
 
-func (m *memoryIndexer) get(hash uint64) *PostingList {
+func (m *indexShard) get(hash uint64) *PostingList {
 	return m.invertedMap[hash]
 }
 
-func (m *memoryIndexer) put(hash uint64, p *PostingList) {
+func (m *indexShard) put(hash uint64, p *PostingList) {
 	m.invertedMap[hash] = p
 }
 
-func (m *memoryIndexer) Add(c *expr.Conjunction) error {
+func (m *indexShard) Add(c *expr.Conjunction) error {
 
 	for _, attr := range c.Attributes {
 		for _, key := range m.createKeys(attr) {
@@ -97,21 +97,22 @@ func (m *memoryIndexer) Add(c *expr.Conjunction) error {
 	return nil
 }
 
-type kIndexTable struct {
+type memoryIndex struct {
 	maxKSize      int
 	attributeMeta expr.AttributeMetadataStorer
-	sizedIndexes  map[int]Indexer
+	sizedIndexes  map[int]*indexShard
 }
 
-func newKIndexTable(attributeMeta expr.AttributeMetadataStorer) KSizeIndexer {
-	return &kIndexTable{
+// NewMemoryIndexer create a memory stored indexer
+func NewMemoryIndexer(attributeMeta expr.AttributeMetadataStorer) Indexer {
+	return &memoryIndex{
 		maxKSize:      0,
-		sizedIndexes:  make(map[int]Indexer),
+		sizedIndexes:  make(map[int]*indexShard),
 		attributeMeta: attributeMeta,
 	}
 }
 
-func (k *kIndexTable) Add(c *expr.Conjunction) {
+func (k *memoryIndex) Add(c *expr.Conjunction) {
 	ksize := c.GetKSize()
 
 	if k.maxKSize < ksize {
@@ -120,14 +121,14 @@ func (k *kIndexTable) Add(c *expr.Conjunction) {
 
 	kidx, exist := k.sizedIndexes[ksize]
 	if !exist {
-		kidx = newMemoryIndex(k.attributeMeta)
+		kidx = newIndexShard(k.attributeMeta)
 		k.sizedIndexes[ksize] = kidx
 	}
 
 	kidx.Add(c)
 }
 
-func (k *kIndexTable) Build() error {
+func (k *memoryIndex) Build() error {
 	for _, v := range k.sizedIndexes {
 		if err := v.Build(); err != nil {
 			return err
@@ -136,11 +137,11 @@ func (k *kIndexTable) Build() error {
 	return nil
 }
 
-func (k *kIndexTable) MaxKSize() int {
+func (k *memoryIndex) MaxKSize() int {
 	return k.maxKSize
 }
 
-func (k *kIndexTable) GetPostingLists(size int, labels expr.Assignment) []*PostingList {
+func (k *memoryIndex) GetPostingLists(size int, labels expr.Assignment) []*PostingList {
 	idx := k.sizedIndexes[size]
 	if idx == nil {
 		return nil
@@ -174,7 +175,7 @@ func (k *kIndexTable) GetPostingLists(size int, labels expr.Assignment) []*Posti
 }
 
 // Match finds the matched conjunctions given an assignment.
-func (k *kIndexTable) Match(assignment expr.Assignment) []int {
+func (k *memoryIndex) Match(assignment expr.Assignment) []int {
 	results := set.IntHashSet()
 
 	n := min(len(assignment), k.maxKSize)

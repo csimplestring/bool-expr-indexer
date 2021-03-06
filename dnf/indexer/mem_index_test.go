@@ -29,7 +29,7 @@ func printMemUsage() {
 }
 
 func Benchmark_kIndexTable_Add(b *testing.B) {
-	k := newKIndexTable(nil)
+	k := NewMemoryIndexer(nil)
 
 	for n := 0; n < b.N; n++ {
 		id := n + 1
@@ -66,7 +66,7 @@ func Test_kIndexTable_Match(t *testing.T) {
 	metastorer.AddValueIDMapping("gender", "F", 0)
 	metastorer.AddValueIDMapping("gender", "M", 1)
 
-	k := newKIndexTable(metastorer)
+	k := NewMemoryIndexer(metastorer)
 
 	k.Add(expr.NewConjunction(
 		1,

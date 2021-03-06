@@ -4,19 +4,12 @@ import (
 	"github.com/csimplestring/bool-expr-indexer/dnf/expr"
 )
 
-// KSizeIndexer shards the Indexer by conjunction size.
-type KSizeIndexer interface {
+// Indexer shards the Indexer by conjunction size.
+type Indexer interface {
 	Build() error
 	MaxKSize() int
 	Add(c *expr.Conjunction)
 	Match(assignment expr.Assignment) []int
-}
-
-// Indexer actually stores the reverted index: key -> posting list
-type Indexer interface {
-	Add(c *expr.Conjunction) error
-	Get(k *key) *PostingList
-	Build() error
 }
 
 // key is the key representing an attribute, e.g., <age, 10>
