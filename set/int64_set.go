@@ -8,25 +8,28 @@ type IntSet interface {
 	ToSlice() []int
 }
 
-type int64Set struct {
+type intSet struct {
 	m map[int]bool
 	sync.RWMutex
 }
 
-// Int64HashSet creates a new set for int64 element.
-func Int64HashSet() IntSet {
-	return &int64Set{
+// IntHashSet creates a new set for int64 element.
+func IntHashSet() IntSet {
+	return &intSet{
 		m: make(map[int]bool),
 	}
 }
 
-func (s *int64Set) Add(x int) {
+func (s *intSet) Add(x int) {
 	s.Lock()
 	s.m[x] = true
 	s.Unlock()
 }
 
-func (s *int64Set) ToSlice() []int {
+func (s *intSet) ToSlice() []int {
+	s.RLock()
+	defer s.RUnlock()
+
 	r := make([]int, len(s.m))
 	i := 0
 	for k := range s.m {
