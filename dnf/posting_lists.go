@@ -66,21 +66,19 @@ func (p *postingLists) sortByCurrent() {
 }
 
 type pCursor struct {
-	ref  *PostingList
-	size int
-	cur  int
+	ref *PostingList
+	cur int
 }
 
 func newCursor(ref *PostingList) *pCursor {
 	return &pCursor{
-		ref:  ref,
-		size: len(ref.Items),
-		cur:  0,
+		ref: ref,
+		cur: 0,
 	}
 }
 
 func (p *pCursor) current() *PostingEntry {
-	if p.cur >= p.size {
+	if p.cur >= len(p.ref.Items) {
 		return eolItem
 	}
 

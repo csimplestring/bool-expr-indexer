@@ -5,7 +5,7 @@ import (
 	"math"
 )
 
-// zKey is zero boolean key placeholder
+// zKey is zero key placeholder
 var zKey *Key = &Key{
 	Name:  0,
 	Value: 0,
