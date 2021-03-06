@@ -152,8 +152,10 @@ func Test_kIndexTable_Match(t *testing.T) {
 	assert.Equal(t, 4, twoIdx.imap[fmt.Sprintf("%d:%d", attrName["gender"], genderValue["M"])].Items[1].CID)
 	assert.Equal(t, true, twoIdx.imap[fmt.Sprintf("%d:%d", attrName["gender"], genderValue["M"])].Items[1].Contains)
 
-	matcher := &matcher{}
-	matched := matcher.Match(k, Assignment{
+	matcher := &matcher{
+		kIndexTable: k,
+	}
+	matched := matcher.Match(Assignment{
 		Label{Name: attrName["age"], Value: 3},
 		Label{Name: attrName["state"], Value: stateValue["CA"]},
 		Label{Name: attrName["gender"], Value: genderValue["M"]},
