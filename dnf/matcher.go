@@ -6,11 +6,11 @@ import (
 
 // Matcher finds the matched conjunction ids
 type Matcher interface {
-	Match(*kIndexTable, Assignment) []int64
+	Match(*kIndexTable, Assignment) []int
 }
 
-type matcher struct {
-}
+// matcher implements the Matcher interface
+type matcher struct{}
 
 func min(a int, b int) int {
 	if a < b {
@@ -19,13 +19,14 @@ func min(a int, b int) int {
 	return b
 }
 
-func (m *matcher) Match(k *kIndexTable, labels Assignment) []int {
-	results := set.Int64HashSet()
+// Match finds the matched conjunctions given an assignment.
+func (m *matcher) Match(k *kIndexTable, assignment Assignment) []int {
+	results := set.IntHashSet()
 
-	n := min(len(labels), k.maxKSize)
+	n := min(len(assignment), k.maxKSize)
 
 	for i := n; i >= 0; i-- {
-		pLists := newPostingLists(k.GetPostingLists(i, labels))
+		pLists := newPostingLists(k.GetPostingLists(i, assignment))
 
 		K := i
 		if K == 0 {

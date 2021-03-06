@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/thanhpk/randstr"
 )
 
 func randBool() bool {
@@ -28,75 +27,84 @@ func printMemUsage() {
 	fmt.Printf("\tNumGC = %v\n", m.NumGC)
 }
 
-func Test_kIndexTable_Add_Lot(t *testing.T) {
+// func Test_kIndexTable_Add_Lot(t *testing.T) {
+// 	k := newKIndexTable()
+
+// 	for i := 0; i < 1000000; i++ {
+// 		id := i
+
+// 		var attrs []*Attribute
+// 		for j := 0; j < rand.Intn(10-1)+1; j++ {
+// 			attrs = append(attrs, &Attribute{
+// 				Name:     rand.Intn(200-1) + 1,
+// 				Values:   []int{rand.Intn(20-1) + 1},
+// 				Contains: randBool(),
+// 			})
+// 		}
+
+// 		k.Add(NewConjunction(id, attrs))
+// 	}
+
+// 	printMemUsage()
+// }
+
+func Test_kIndexTable_Match(t *testing.T) {
 	k := newKIndexTable()
 
-	for i := 0; i < 100; i++ {
-		id := i
-
-		var attrs []*Attribute
-		for j := 0; j < rand.Intn(10-1)+1; j++ {
-			attrs = append(attrs, &Attribute{
-				Name:     randstr.String(rand.Intn(20-1) + 1),
-				Values:   []string{randstr.String(rand.Intn(20-1) + 1)},
-				Contains: randBool(),
-			})
-		}
-
-		k.Add(NewConjunction(id, attrs))
+	attrName := map[string]int{
+		"age": 1, "state": 2, "gender": 3,
 	}
-
-	printMemUsage()
-
-}
-
-func Test_kIndexTable_Add(t *testing.T) {
-	k := newKIndexTable()
+	stateValue := map[string]int{
+		"NY": 1, "CA": 2,
+	}
+	genderValue := map[string]int{
+		"F": 0, "M": 1,
+	}
 
 	k.Add(NewConjunction(
 		1,
 		[]*Attribute{
-			{Name: "age", Values: []string{"3"}, Contains: true},
-			{Name: "state", Values: []string{"NY"}, Contains: true},
+			{Name: attrName["age"], Values: []int{3}, Contains: true},
+			{Name: attrName["state"], Values: []int{stateValue["NY"]}, Contains: true},
 		},
 	))
 
 	k.Add(NewConjunction(
 		2,
 		[]*Attribute{
-			{Name: "age", Values: []string{"3"}, Contains: true},
-			{Name: "gender", Values: []string{"F"}, Contains: true},
+			{Name: attrName["age"], Values: []int{3}, Contains: true},
+			{Name: attrName["gender"], Values: []int{genderValue["F"]}, Contains: true},
 		},
 	))
 
 	k.Add(NewConjunction(
 		3,
 		[]*Attribute{
-			{Name: "age", Values: []string{"3"}, Contains: true},
-			{Name: "gender", Values: []string{"M"}, Contains: true},
-			{Name: "state", Values: []string{"CA"}, Contains: false},
+			{Name: attrName["age"], Values: []int{3}, Contains: true},
+			{Name: attrName["gender"], Values: []int{genderValue["M"]}, Contains: true},
+			{Name: attrName["state"], Values: []int{stateValue["CA"]}, Contains: false},
 		},
 	))
 
 	k.Add(NewConjunction(
 		4,
 		[]*Attribute{
-			{Name: "state", Values: []string{"CA"}, Contains: true},
-			{Name: "gender", Values: []string{"M"}, Contains: true},
+			{Name: attrName["state"], Values: []int{stateValue["CA"]}, Contains: true},
+			{Name: attrName["gender"], Values: []int{genderValue["M"]}, Contains: true},
 		},
 	))
 
 	k.Add(NewConjunction(
 		5,
 		[]*Attribute{
-			{Name: "age", Values: []string{"3", "4"}, Contains: true},
+			{Name: attrName["age"], Values: []int{3, 4}, Contains: true},
 		},
 	))
 
 	k.Add(NewConjunction(
 		6,
 		[]*Attribute{
-			{Name: "state", Values: []string{"CA", "NY"}, Contains: false},
+			{Name: attrName["state"], Values: []int{stateValue["CA"], stateValue["NY"]}, Contains: false},
 		},
 	))
 
@@ -105,50 +113,50 @@ func Test_kIndexTable_Add(t *testing.T) {
 	assert.Equal(t, 2, k.MaxKSize())
 	zeroIdx := k.sizedIndexes[0].(*memoryIndexer)
 	assert.Equal(t, 3, len(zeroIdx.imap))
-	assert.Equal(t, 6, zeroIdx.imap["state:CA"].Items[0].CID)
-	assert.Equal(t, false, zeroIdx.imap["state:CA"].Items[0].Contains)
-	assert.Equal(t, 6, zeroIdx.imap["state:NY"].Items[0].CID)
-	assert.Equal(t, false, zeroIdx.imap["state:NY"].Items[0].Contains)
-	assert.Equal(t, 6, zeroIdx.imap["null:null"].Items[0].CID)
-	assert.Equal(t, true, zeroIdx.imap["null:null"].Items[0].Contains)
+	assert.Equal(t, 6, zeroIdx.imap[fmt.Sprintf("%d:%d", attrName["state"], stateValue["CA"])].Items[0].CID)
+	assert.Equal(t, false, zeroIdx.imap[fmt.Sprintf("%d:%d", attrName["state"], stateValue["CA"])].Items[0].Contains)
+	assert.Equal(t, 6, zeroIdx.imap[fmt.Sprintf("%d:%d", attrName["state"], stateValue["NY"])].Items[0].CID)
+	assert.Equal(t, false, zeroIdx.imap[fmt.Sprintf("%d:%d", attrName["state"], stateValue["NY"])].Items[0].Contains)
+	assert.Equal(t, 6, zeroIdx.imap["0:0"].Items[0].CID)
+	assert.Equal(t, true, zeroIdx.imap["0:0"].Items[0].Contains)
 
 	oneIdx := k.sizedIndexes[1].(*memoryIndexer)
 	assert.Equal(t, 2, len(oneIdx.imap))
-	assert.Equal(t, 5, oneIdx.imap["age:3"].Items[0].CID)
-	assert.Equal(t, true, oneIdx.imap["age:3"].Items[0].Contains)
-	assert.Equal(t, 5, oneIdx.imap["age:4"].Items[0].CID)
-	assert.Equal(t, true, oneIdx.imap["age:4"].Items[0].Contains)
+	assert.Equal(t, 5, oneIdx.imap[fmt.Sprintf("%d:3", attrName["age"])].Items[0].CID)
+	assert.Equal(t, true, oneIdx.imap[fmt.Sprintf("%d:3", attrName["age"])].Items[0].Contains)
+	assert.Equal(t, 5, oneIdx.imap[fmt.Sprintf("%d:4", attrName["age"])].Items[0].CID)
+	assert.Equal(t, true, oneIdx.imap[fmt.Sprintf("%d:4", attrName["age"])].Items[0].Contains)
 
 	twoIdx := k.sizedIndexes[2].(*memoryIndexer)
 	assert.Equal(t, 5, len(twoIdx.imap))
-	assert.Equal(t, 1, twoIdx.imap["state:NY"].Items[0].CID)
-	assert.Equal(t, true, twoIdx.imap["state:NY"].Items[0].Contains)
+	assert.Equal(t, 1, twoIdx.imap[fmt.Sprintf("%d:%d", attrName["state"], stateValue["NY"])].Items[0].CID)
+	assert.Equal(t, true, twoIdx.imap[fmt.Sprintf("%d:%d", attrName["state"], stateValue["NY"])].Items[0].Contains)
 
-	assert.Equal(t, 1, twoIdx.imap["age:3"].Items[0].CID)
-	assert.Equal(t, true, twoIdx.imap["age:3"].Items[0].Contains)
-	assert.Equal(t, 2, twoIdx.imap["age:3"].Items[1].CID)
-	assert.Equal(t, true, twoIdx.imap["age:3"].Items[1].Contains)
-	assert.Equal(t, 3, twoIdx.imap["age:3"].Items[2].CID)
-	assert.Equal(t, true, twoIdx.imap["age:3"].Items[2].Contains)
+	assert.Equal(t, 1, twoIdx.imap[fmt.Sprintf("%d:3", attrName["age"])].Items[0].CID)
+	assert.Equal(t, true, twoIdx.imap[fmt.Sprintf("%d:3", attrName["age"])].Items[0].Contains)
+	assert.Equal(t, 2, twoIdx.imap[fmt.Sprintf("%d:3", attrName["age"])].Items[1].CID)
+	assert.Equal(t, true, twoIdx.imap[fmt.Sprintf("%d:3", attrName["age"])].Items[1].Contains)
+	assert.Equal(t, 3, twoIdx.imap[fmt.Sprintf("%d:3", attrName["age"])].Items[2].CID)
+	assert.Equal(t, true, twoIdx.imap[fmt.Sprintf("%d:3", attrName["age"])].Items[2].Contains)
 
-	assert.Equal(t, 2, twoIdx.imap["gender:F"].Items[0].CID)
-	assert.Equal(t, true, twoIdx.imap["gender:F"].Items[0].Contains)
+	assert.Equal(t, 2, twoIdx.imap[fmt.Sprintf("%d:%d", attrName["gender"], genderValue["F"])].Items[0].CID)
+	assert.Equal(t, true, twoIdx.imap[fmt.Sprintf("%d:%d", attrName["gender"], genderValue["F"])].Items[0].Contains)
 
-	assert.Equal(t, 3, twoIdx.imap["state:CA"].Items[0].CID)
-	assert.Equal(t, false, twoIdx.imap["state:CA"].Items[0].Contains)
-	assert.Equal(t, 4, twoIdx.imap["state:CA"].Items[1].CID)
-	assert.Equal(t, true, twoIdx.imap["state:CA"].Items[1].Contains)
+	assert.Equal(t, 3, twoIdx.imap[fmt.Sprintf("%d:%d", attrName["state"], stateValue["CA"])].Items[0].CID)
+	assert.Equal(t, false, twoIdx.imap[fmt.Sprintf("%d:%d", attrName["state"], stateValue["CA"])].Items[0].Contains)
+	assert.Equal(t, 4, twoIdx.imap[fmt.Sprintf("%d:%d", attrName["state"], stateValue["CA"])].Items[1].CID)
+	assert.Equal(t, true, twoIdx.imap[fmt.Sprintf("%d:%d", attrName["state"], stateValue["CA"])].Items[1].Contains)
 
-	assert.Equal(t, 3, twoIdx.imap["gender:M"].Items[0].CID)
-	assert.Equal(t, true, twoIdx.imap["gender:M"].Items[0].Contains)
-	assert.Equal(t, 4, twoIdx.imap["gender:M"].Items[1].CID)
-	assert.Equal(t, true, twoIdx.imap["gender:M"].Items[1].Contains)
+	assert.Equal(t, 3, twoIdx.imap[fmt.Sprintf("%d:%d", attrName["gender"], genderValue["M"])].Items[0].CID)
+	assert.Equal(t, true, twoIdx.imap[fmt.Sprintf("%d:%d", attrName["gender"], genderValue["M"])].Items[0].Contains)
+	assert.Equal(t, 4, twoIdx.imap[fmt.Sprintf("%d:%d", attrName["gender"], genderValue["M"])].Items[1].CID)
+	assert.Equal(t, true, twoIdx.imap[fmt.Sprintf("%d:%d", attrName["gender"], genderValue["M"])].Items[1].Contains)
 
 	matcher := &matcher{}
 	matched := matcher.Match(k, Assignment{
-		Label{Name: "age", Value: "3"},
-		Label{Name: "state", Value: "CA"},
-		Label{Name: "gender", Value: "M"},
+		Label{Name: attrName["age"], Value: 3},
+		Label{Name: attrName["state"], Value: stateValue["CA"]},
+		Label{Name: attrName["gender"], Value: genderValue["M"]},
 	})
 
 	assert.Equal(t, []int{4, 5}, matched)

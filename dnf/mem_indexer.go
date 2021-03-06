@@ -1,11 +1,14 @@
 package dnf
 
-import "math"
+import (
+	"fmt"
+	"math"
+)
 
 // zKey is zero boolean key placeholder
 var zKey *Key = &Key{
-	Name:  "null",
-	Value: "null",
+	Name:  0,
+	Value: 0,
 	score: 0,
 }
 
@@ -42,7 +45,7 @@ func (m *memoryIndexer) createKeys(a *Attribute) []*Key {
 }
 
 func (m *memoryIndexer) hashKey(k *Key) string {
-	return k.Name + ":" + k.Value
+	return fmt.Sprintf("%d:%d", k.Name, k.Value)
 }
 
 func (m *memoryIndexer) Build() error {
