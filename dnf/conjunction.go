@@ -20,25 +20,24 @@ type Attribute struct {
 type Conjunction struct {
 	ID         int
 	Attributes []*Attribute
-	kSize      int
 }
 
 // GetKSize is the size of attributes in c, excluding any 'not-included' type attribute
 func (c *Conjunction) GetKSize() int {
-	return c.kSize
-}
-
-// NewConjunction creates a new Conjunction
-func NewConjunction(ID int, attrs []*Attribute) *Conjunction {
 	ksize := 0
-	for _, a := range attrs {
+	for _, a := range c.Attributes {
 		if a.Contains {
 			ksize++
 		}
 	}
+	return ksize
+}
+
+// NewConjunction creates a new Conjunction
+func NewConjunction(ID int, attrs []*Attribute) *Conjunction {
+
 	return &Conjunction{
 		ID:         ID,
 		Attributes: attrs,
-		kSize:      ksize,
 	}
 }

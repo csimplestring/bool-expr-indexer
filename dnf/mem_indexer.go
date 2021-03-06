@@ -95,7 +95,7 @@ func (m *memoryIndexer) Add(c *Conjunction) error {
 		}
 	}
 
-	if c.kSize == 0 {
+	if c.GetKSize() == 0 {
 		hash := m.hashKey(zKey)
 		pList := m.createIfAbsent(hash)
 		pList.append(&PostingEntry{
