@@ -1,4 +1,4 @@
-package dnf
+package indexer
 
 import (
 	"testing"

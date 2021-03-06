@@ -1,12 +1,13 @@
-package dnf
+package indexer
 
 import (
+	"github.com/csimplestring/bool-expr-indexer/dnf/expr"
 	"github.com/csimplestring/bool-expr-indexer/set"
 )
 
 // Matcher finds the matched conjunction ids
 type Matcher interface {
-	Match(Assignment) []int
+	Match(expr.Assignment) []int
 }
 
 // NewMatcher creates a new matcher
@@ -29,7 +30,7 @@ func min(a int, b int) int {
 }
 
 // Match finds the matched conjunctions given an assignment.
-func (m *matcher) Match(assignment Assignment) []int {
+func (m *matcher) Match(assignment expr.Assignment) []int {
 	results := set.IntHashSet()
 	k := m.kIndexTable
 

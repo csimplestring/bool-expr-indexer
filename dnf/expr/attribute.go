@@ -1,4 +1,4 @@
-package dnf
+package expr
 
 import "errors"
 

@@ -1,23 +1,25 @@
-package dnf
+package indexer
+
+import "github.com/csimplestring/bool-expr-indexer/dnf/expr"
 
 type memoryIndexer struct {
 	imap          map[uint64]*PostingList
-	attributeMeta AttributeMetadataStorer
+	attributeMeta expr.AttributeMetadataStorer
 }
 
 // NewMemoryIndex creates a new memory indexer, exposed as a public api.
-func NewMemoryIndex(attributeMeta AttributeMetadataStorer) Indexer {
+func NewMemoryIndex(attributeMeta expr.AttributeMetadataStorer) Indexer {
 	return newMemoryIndex(attributeMeta)
 }
 
-func newMemoryIndex(attributeMeta AttributeMetadataStorer) *memoryIndexer {
+func newMemoryIndex(attributeMeta expr.AttributeMetadataStorer) *memoryIndexer {
 	return &memoryIndexer{
 		imap:          make(map[uint64]*PostingList),
 		attributeMeta: attributeMeta,
 	}
 }
 
-func (m *memoryIndexer) createKeys(a *Attribute) []*key {
+func (m *memoryIndexer) createKeys(a *expr.Attribute) []*key {
 	var keys []*key
 	for _, v := range a.Values {
 		keys = append(keys, &key{
@@ -62,7 +64,7 @@ func (m *memoryIndexer) put(hash uint64, p *PostingList) {
 	m.imap[hash] = p
 }
 
-func (m *memoryIndexer) Add(c *Conjunction) error {
+func (m *memoryIndexer) Add(c *expr.Conjunction) error {
 
 	for _, attr := range c.Attributes {
 		for _, key := range m.createKeys(attr) {
@@ -94,11 +96,11 @@ func (m *memoryIndexer) Add(c *Conjunction) error {
 
 type kIndexTable struct {
 	maxKSize      int
-	attributeMeta AttributeMetadataStorer
+	attributeMeta expr.AttributeMetadataStorer
 	sizedIndexes  map[int]Indexer
 }
 
-func newKIndexTable(attributeMeta AttributeMetadataStorer) *kIndexTable {
+func newKIndexTable(attributeMeta expr.AttributeMetadataStorer) *kIndexTable {
 	return &kIndexTable{
 		maxKSize:      0,
 		sizedIndexes:  make(map[int]Indexer),
@@ -106,7 +108,7 @@ func newKIndexTable(attributeMeta AttributeMetadataStorer) *kIndexTable {
 	}
 }
 
-func (k *kIndexTable) Add(c *Conjunction) {
+func (k *kIndexTable) Add(c *expr.Conjunction) {
 	ksize := c.GetKSize()
 
 	if k.maxKSize < ksize {
@@ -135,7 +137,7 @@ func (k *kIndexTable) MaxKSize() int {
 	return k.maxKSize
 }
 
-func (k *kIndexTable) GetPostingLists(size int, labels Assignment) []*PostingList {
+func (k *kIndexTable) GetPostingLists(size int, labels expr.Assignment) []*PostingList {
 	idx := k.sizedIndexes[size]
 	if idx == nil {
 		return nil

@@ -1,4 +1,8 @@
-package dnf
+package indexer
+
+import (
+	"github.com/csimplestring/bool-expr-indexer/dnf/expr"
+)
 
 // KSizeIndexer shards the Indexer by conjunction size.
 type KSizeIndexer interface {
@@ -9,7 +13,7 @@ type KSizeIndexer interface {
 
 // Indexer actually stores the reverted index: key -> posting list
 type Indexer interface {
-	Add(c *Conjunction) error
+	Add(c *expr.Conjunction) error
 	Get(k *key) *PostingList
 	Build() error
 }

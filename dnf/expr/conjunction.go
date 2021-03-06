@@ -1,4 +1,4 @@
-package dnf
+package expr
 
 // Conjunction consists of a slice of Attributes, which are combined with 'AND' logic.
 type Conjunction struct {

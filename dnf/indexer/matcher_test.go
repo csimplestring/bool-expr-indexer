@@ -1,4 +1,4 @@
-package dnf
+package indexer
 
 import (
 	"fmt"
@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/csimplestring/bool-expr-indexer/dnf/expr"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -33,20 +34,20 @@ func Benchmark_kIndexTable_Add(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		id := n + 1
 
-		var attrs []*Attribute
+		var attrs []*expr.Attribute
 		for j := 0; j < rand.Intn(10-1)+1; j++ {
-			attrs = append(attrs, &Attribute{
+			attrs = append(attrs, &expr.Attribute{
 				Name:     uint32(rand.Intn(200-1) + 1),
 				Values:   []uint32{uint32(rand.Intn(20-1) + 1)},
 				Contains: randBool(),
 			})
 		}
 
-		k.Add(NewConjunction(id, attrs))
+		k.Add(expr.NewConjunction(id, attrs))
 	}
 }
 
-func getTestAttribute(t *testing.T, m AttributeMetadataStorer, name string, values []string, contains bool) *Attribute {
+func getTestAttribute(t *testing.T, m expr.AttributeMetadataStorer, name string, values []string, contains bool) *expr.Attribute {
 	a, err := m.NewAttribute(name, values, contains)
 	assert.NoError(t, err)
 
@@ -54,7 +55,7 @@ func getTestAttribute(t *testing.T, m AttributeMetadataStorer, name string, valu
 }
 
 func Test_kIndexTable_Match(t *testing.T) {
-	metastorer := NewAttributeMetadataStorer()
+	metastorer := expr.NewAttributeMetadataStorer()
 	metastorer.AddNameIDMapping("age", 1)
 	metastorer.AddNameIDMapping("state", 2)
 	metastorer.AddNameIDMapping("gender", 3)
@@ -67,49 +68,49 @@ func Test_kIndexTable_Match(t *testing.T) {
 
 	k := newKIndexTable(metastorer)
 
-	k.Add(NewConjunction(
+	k.Add(expr.NewConjunction(
 		1,
-		[]*Attribute{
+		[]*expr.Attribute{
 			getTestAttribute(t, metastorer, "age", []string{"3"}, true),
 			getTestAttribute(t, metastorer, "state", []string{"NY"}, true),
 		},
 	))
 
-	k.Add(NewConjunction(
+	k.Add(expr.NewConjunction(
 		2,
-		[]*Attribute{
+		[]*expr.Attribute{
 			getTestAttribute(t, metastorer, "age", []string{"3"}, true),
 			getTestAttribute(t, metastorer, "gender", []string{"F"}, true),
 		},
 	))
 
-	k.Add(NewConjunction(
+	k.Add(expr.NewConjunction(
 		3,
-		[]*Attribute{
+		[]*expr.Attribute{
 			getTestAttribute(t, metastorer, "age", []string{"3"}, true),
 			getTestAttribute(t, metastorer, "gender", []string{"M"}, true),
 			getTestAttribute(t, metastorer, "state", []string{"CA"}, false),
 		},
 	))
 
-	k.Add(NewConjunction(
+	k.Add(expr.NewConjunction(
 		4,
-		[]*Attribute{
+		[]*expr.Attribute{
 			getTestAttribute(t, metastorer, "state", []string{"CA"}, true),
 			getTestAttribute(t, metastorer, "gender", []string{"M"}, true),
 		},
 	))
 
-	k.Add(NewConjunction(
+	k.Add(expr.NewConjunction(
 		5,
-		[]*Attribute{
+		[]*expr.Attribute{
 			getTestAttribute(t, metastorer, "age", []string{"3", "4"}, true),
 		},
 	))
 
-	k.Add(NewConjunction(
+	k.Add(expr.NewConjunction(
 		6,
-		[]*Attribute{
+		[]*expr.Attribute{
 			getTestAttribute(t, metastorer, "state", []string{"CA", "NY"}, false),
 		},
 	))
@@ -162,10 +163,10 @@ func Test_kIndexTable_Match(t *testing.T) {
 	matcher := &matcher{
 		kIndexTable: k,
 	}
-	matched := matcher.Match(Assignment{
-		Label{Name: "age", Value: "3"},
-		Label{Name: "state", Value: "CA"},
-		Label{Name: "gender", Value: "M"},
+	matched := matcher.Match(expr.Assignment{
+		expr.Label{Name: "age", Value: "3"},
+		expr.Label{Name: "state", Value: "CA"},
+		expr.Label{Name: "gender", Value: "M"},
 	})
 
 	assert.ElementsMatch(t, []int{4, 5}, matched)
