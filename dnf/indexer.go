@@ -10,13 +10,20 @@ type KSizeIndexer interface {
 // Indexer actually stores the reverted index: key -> posting list
 type Indexer interface {
 	Add(c *Conjunction) error
-	Get(k *Key) *PostingList
+	Get(k *key) *PostingList
 	Build() error
 }
 
-// Key is the key representing an attribute, e.g., <age, 10>
-type Key struct {
+// key is the key representing an attribute, e.g., <age, 10>
+type key struct {
 	Name  uint32
 	Value uint32
 	score int
+}
+
+// zKey is zero key placeholder
+var zKey *key = &key{
+	Name:  0,
+	Value: 0,
+	score: 0,
 }

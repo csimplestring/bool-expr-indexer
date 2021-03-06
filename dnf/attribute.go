@@ -17,7 +17,7 @@ type AttributeMetadataStorer interface {
 	GetNameID(name string) (uint32, bool)
 	// Get id of give name/value
 	GetValueID(name string, value string) (uint32, bool)
-	//
+	// Creates a new Attribute, based on stored mapping
 	NewAttribute(name string, values []string, contains bool) (*Attribute, error)
 }
 

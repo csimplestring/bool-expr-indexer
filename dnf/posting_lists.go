@@ -1,6 +1,16 @@
 package dnf
 
-import "sort"
+import (
+	"math"
+	"sort"
+)
+
+// eolItem means end-of-list item, used as the end of a posting list.
+var eolItem *PostingEntry = &PostingEntry{
+	score:    0,
+	CID:      math.MaxInt64,
+	Contains: true,
+}
 
 // PostingEntry store conjunction-id, belongs-to flag, serving as inverted index pointing to Conjunction
 type PostingEntry struct {

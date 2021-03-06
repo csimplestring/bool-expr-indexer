@@ -1,23 +1,5 @@
 package dnf
 
-import (
-	"math"
-)
-
-// zKey is zero key placeholder
-var zKey *Key = &Key{
-	Name:  0,
-	Value: 0,
-	score: 0,
-}
-
-// eolItem means end-of-list item, used as the end of a posting list.
-var eolItem *PostingEntry = &PostingEntry{
-	score:    0,
-	CID:      math.MaxInt64,
-	Contains: true,
-}
-
 type memoryIndexer struct {
 	imap          map[uint64]*PostingList
 	attributeMeta AttributeMetadataStorer
@@ -35,10 +17,10 @@ func newMemoryIndex(attributeMeta AttributeMetadataStorer) *memoryIndexer {
 	}
 }
 
-func (m *memoryIndexer) createKeys(a *Attribute) []*Key {
-	var keys []*Key
+func (m *memoryIndexer) createKeys(a *Attribute) []*key {
+	var keys []*key
 	for _, v := range a.Values {
-		keys = append(keys, &Key{
+		keys = append(keys, &key{
 			Name:  a.Name,
 			Value: v,
 		})
@@ -46,7 +28,7 @@ func (m *memoryIndexer) createKeys(a *Attribute) []*Key {
 	return keys
 }
 
-func (m *memoryIndexer) hashKey(k *Key) uint64 {
+func (m *memoryIndexer) hashKey(k *key) uint64 {
 	return uint64(k.Name)<<32 | uint64(k.Value)
 }
 
@@ -57,7 +39,7 @@ func (m *memoryIndexer) Build() error {
 	return nil
 }
 
-func (m *memoryIndexer) Get(k *Key) *PostingList {
+func (m *memoryIndexer) Get(k *key) *PostingList {
 	h := m.hashKey(k)
 	return m.imap[h]
 }
@@ -170,7 +152,7 @@ func (k *kIndexTable) GetPostingLists(size int, labels Assignment) []*PostingLis
 			return nil
 		}
 
-		k := &Key{
+		k := &key{
 			Name:  name,
 			Value: value,
 		}
