@@ -22,7 +22,11 @@ func newIndexShard(attributeMeta expr.AttributeMetadataStorer) *indexShard {
 	}
 }
 
-func (m *indexShard) createKeys(a *expr.Attribute) []*key {
+func (m *indexShard) toKeys(a *expr.Attribute) []*key {
+	if a == nil {
+		return nil
+	}
+
 	var keys []*key
 	for _, v := range a.Values {
 		keys = append(keys, &key{
@@ -70,7 +74,7 @@ func (m *indexShard) put(hash uint64, p *PostingList) {
 func (m *indexShard) Add(c *expr.Conjunction) error {
 
 	for _, attr := range c.Attributes {
-		for _, key := range m.createKeys(attr) {
+		for _, key := range m.toKeys(attr) {
 
 			hash := m.hashKey(key)
 
