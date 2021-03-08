@@ -20,67 +20,33 @@ type PostingEntry struct {
 }
 
 // PostingList is a list of PostingItem
-type PostingList struct {
-	Items []*PostingEntry
-}
+type PostingList []*PostingEntry
 
-func newPostingList() *PostingList {
-	return &PostingList{}
-}
+// func newPostingList() *PostingList {
+// 	return &PostingList{}
+// }
 
-func (p *PostingList) append(item *PostingEntry) {
-	p.Items = append(p.Items, item)
-}
+// func (p PostingList) append(item *PostingEntry) {
+// 	p = append(p, item)
+// }
 
-func (p *PostingList) sort() {
-	sort.Slice(p.Items[:], func(i, j int) bool {
+func (p PostingList) sort() {
+	sort.Slice(p[:], func(i, j int) bool {
 
-		if p.Items[i].CID != p.Items[j].CID {
-			return p.Items[i].CID < p.Items[j].CID
+		if p[i].CID != p[j].CID {
+			return p[i].CID < p[j].CID
 		}
 
-		return !p.Items[i].Contains && p.Items[j].Contains
-	})
-}
-
-type postingLists struct {
-	c []*pCursor
-}
-
-func newPostingLists(l []*PostingList) *postingLists {
-	var c []*pCursor
-
-	for _, v := range l {
-		c = append(c, newCursor(v))
-	}
-	return &postingLists{
-		c: c,
-	}
-}
-
-func (p *postingLists) len() int {
-	return len(p.c)
-}
-
-func (p *postingLists) sortByCurrent() {
-	sort.Slice(p.c[:], func(i, j int) bool {
-		a := p.c[i].current()
-		b := p.c[j].current()
-
-		if a.CID != b.CID {
-			return a.CID < b.CID
-		}
-
-		return !a.Contains && b.Contains
+		return !p[i].Contains && p[j].Contains
 	})
 }
 
 type pCursor struct {
-	ref *PostingList
+	ref PostingList
 	cur int
 }
 
-func newCursor(ref *PostingList) *pCursor {
+func newCursor(ref PostingList) *pCursor {
 	return &pCursor{
 		ref: ref,
 		cur: 0,
@@ -88,15 +54,43 @@ func newCursor(ref *PostingList) *pCursor {
 }
 
 func (p *pCursor) current() *PostingEntry {
-	if p.cur >= len(p.ref.Items) {
+	if p.cur >= len(p.ref) {
 		return eolItem
 	}
 
-	return p.ref.Items[p.cur]
+	return p.ref[p.cur]
 }
 
 func (p *pCursor) skipTo(ID int) {
-	n := len(p.ref.Items)
+	n := len(p.ref)
 	// since p.ref.Items is already sorted in asc order, we do binary search: find the smallest-ID >= ID
-	p.cur = sort.Search(n, func(i int) bool { return p.ref.Items[i].CID >= ID })
+	p.cur = sort.Search(n, func(i int) bool { return p.ref[i].CID >= ID })
+}
+
+type postingLists []*pCursor
+
+func newPostingLists(l []PostingList) postingLists {
+	c := make([]*pCursor, len(l))
+
+	for i, v := range l {
+		c[i] = newCursor(v)
+	}
+	return c
+}
+
+func (p postingLists) len() int {
+	return len(p)
+}
+
+func (p postingLists) sortByCurrent() {
+	sort.Slice(p[:], func(i, j int) bool {
+		a := p[i].current()
+		b := p[j].current()
+
+		if a.CID != b.CID {
+			return a.CID < b.CID
+		}
+
+		return !a.Contains && b.Contains
+	})
 }

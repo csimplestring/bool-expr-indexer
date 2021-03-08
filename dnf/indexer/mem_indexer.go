@@ -6,7 +6,7 @@ import (
 )
 
 type indexShard struct {
-	invertedMap   map[uint64]*PostingList
+	invertedMap   map[uint64]PostingList
 	attributeMeta expr.AttributeMetadataStorer
 }
 
@@ -17,7 +17,7 @@ type indexShard struct {
 
 func newIndexShard(attributeMeta expr.AttributeMetadataStorer) *indexShard {
 	return &indexShard{
-		invertedMap:   make(map[uint64]*PostingList),
+		invertedMap:   make(map[uint64]PostingList),
 		attributeMeta: attributeMeta,
 	}
 }
@@ -48,26 +48,26 @@ func (m *indexShard) Build() error {
 	return nil
 }
 
-func (m *indexShard) Get(k *key) *PostingList {
+func (m *indexShard) Get(k *key) PostingList {
 	h := m.hashKey(k)
 	return m.invertedMap[h]
 }
 
-func (m *indexShard) createIfAbsent(hash uint64) *PostingList {
+func (m *indexShard) createIfAbsent(hash uint64) PostingList {
 	v := m.get(hash)
 	if v == nil {
-		p := newPostingList()
+		p := PostingList{}
 		m.put(hash, p)
 		return p
 	}
 	return v
 }
 
-func (m *indexShard) get(hash uint64) *PostingList {
+func (m *indexShard) get(hash uint64) PostingList {
 	return m.invertedMap[hash]
 }
 
-func (m *indexShard) put(hash uint64, p *PostingList) {
+func (m *indexShard) put(hash uint64, p PostingList) {
 	m.invertedMap[hash] = p
 }
 
@@ -79,7 +79,7 @@ func (m *indexShard) Add(c *expr.Conjunction) error {
 			hash := m.hashKey(key)
 
 			pList := m.createIfAbsent(hash)
-			pList.append(&PostingEntry{
+			pList = append(pList, &PostingEntry{
 				CID:      c.ID,
 				Contains: attr.Contains,
 			})
@@ -91,7 +91,7 @@ func (m *indexShard) Add(c *expr.Conjunction) error {
 	if c.GetKSize() == 0 {
 		hash := m.hashKey(zKey)
 		pList := m.createIfAbsent(hash)
-		pList.append(&PostingEntry{
+		pList = append(pList, &PostingEntry{
 			CID:      c.ID,
 			Contains: true,
 		})
@@ -145,13 +145,13 @@ func (k *memoryIndex) MaxKSize() int {
 	return k.maxKSize
 }
 
-func (k *memoryIndex) GetPostingLists(size int, labels expr.Assignment) []*PostingList {
+func (k *memoryIndex) GetPostingLists(size int, labels expr.Assignment) []PostingList {
 	idx := k.sizedIndexes[size]
 	if idx == nil {
 		return nil
 	}
 
-	var candidates []*PostingList
+	candidates := make([]PostingList, 1)
 	for _, label := range labels {
 		name, found := k.attributeMeta.GetNameID(label.Name)
 		if !found {
@@ -167,7 +167,7 @@ func (k *memoryIndex) GetPostingLists(size int, labels expr.Assignment) []*Posti
 			Value: value,
 		}
 		p := idx.Get(k)
-		if p == nil {
+		if len(p) == 0 {
 			continue
 		}
 		candidates = append(candidates, p)
@@ -196,33 +196,33 @@ func (k *memoryIndex) Match(assignment expr.Assignment) []int {
 		}
 
 		pLists.sortByCurrent()
-		for pLists.c[K-1].current() != eolItem {
+		for pLists[K-1].current() != eolItem {
 			var nextID int
 
-			if pLists.c[0].current().CID == pLists.c[K-1].current().CID {
+			if pLists[0].current().CID == pLists[K-1].current().CID {
 
-				if pLists.c[0].current().Contains == false {
-					rejectID := pLists.c[0].current().CID
+				if pLists[0].current().Contains == false {
+					rejectID := pLists[0].current().CID
 					for L := K; L <= pLists.len()-1; L++ {
-						if pLists.c[L].current().CID == rejectID {
-							pLists.c[L].skipTo(rejectID + 1)
+						if pLists[L].current().CID == rejectID {
+							pLists[L].skipTo(rejectID + 1)
 						} else {
 							break
 						}
 					}
 
 				} else {
-					results.Add(pLists.c[K-1].current().CID)
+					results.Add(pLists[K-1].current().CID)
 				}
 
-				nextID = pLists.c[K-1].current().CID + 1
+				nextID = pLists[K-1].current().CID + 1
 			} else {
-				nextID = pLists.c[K-1].current().CID
+				nextID = pLists[K-1].current().CID
 
 			}
 
 			for L := 0; L <= K-1; L++ {
-				pLists.c[L].skipTo(nextID)
+				pLists[L].skipTo(nextID)
 			}
 			pLists.sortByCurrent()
 		}

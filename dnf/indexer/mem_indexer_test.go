@@ -26,28 +26,7 @@ func Test_indexShard_hashKey(t *testing.T) {
 }
 
 func Test_indexShard_build(t *testing.T) {
-	type fields struct {
-		invertedMap   map[uint64]*PostingList
-		attributeMeta expr.AttributeMetadataStorer
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			m := &indexShard{
-				invertedMap:   tt.fields.invertedMap,
-				attributeMeta: tt.fields.attributeMeta,
-			}
-			if err := m.Build(); (err != nil) != tt.wantErr {
-				t.Errorf("indexShard.build() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
+
 }
 
 func Test_indexShard_getPostingLists(t *testing.T) {
@@ -55,88 +34,15 @@ func Test_indexShard_getPostingLists(t *testing.T) {
 }
 
 func Test_indexShard_createIfAbsent(t *testing.T) {
-	type fields struct {
-		invertedMap   map[uint64]*PostingList
-		attributeMeta expr.AttributeMetadataStorer
-	}
-	type args struct {
-		hash uint64
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   *PostingList
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			m := &indexShard{
-				invertedMap:   tt.fields.invertedMap,
-				attributeMeta: tt.fields.attributeMeta,
-			}
-			if got := m.createIfAbsent(tt.args.hash); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("indexShard.createIfAbsent() = %v, want %v", got, tt.want)
-			}
-		})
-	}
+
 }
 
 func Test_indexShard_get(t *testing.T) {
-	type fields struct {
-		invertedMap   map[uint64]*PostingList
-		attributeMeta expr.AttributeMetadataStorer
-	}
-	type args struct {
-		hash uint64
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   *PostingList
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			m := &indexShard{
-				invertedMap:   tt.fields.invertedMap,
-				attributeMeta: tt.fields.attributeMeta,
-			}
-			if got := m.get(tt.args.hash); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("indexShard.get() = %v, want %v", got, tt.want)
-			}
-		})
-	}
+
 }
 
 func Test_indexShard_put(t *testing.T) {
-	type fields struct {
-		invertedMap   map[uint64]*PostingList
-		attributeMeta expr.AttributeMetadataStorer
-	}
-	type args struct {
-		hash uint64
-		p    *PostingList
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			m := &indexShard{
-				invertedMap:   tt.fields.invertedMap,
-				attributeMeta: tt.fields.attributeMeta,
-			}
-			m.put(tt.args.hash, tt.args.p)
-		})
-	}
+
 }
 
 func Test_indexShard_Add(t *testing.T) {
