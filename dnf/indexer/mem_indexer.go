@@ -10,11 +10,6 @@ type indexShard struct {
 	attributeMeta expr.AttributeMetadataStorer
 }
 
-// NewMemoryIndex creates a new memory indexer, exposed as a public api.
-// func NewMemoryIndex(attributeMeta expr.AttributeMetadataStorer) Indexer {
-// 	return newMemoryIndex(attributeMeta)
-// }
-
 func newIndexShard(attributeMeta expr.AttributeMetadataStorer) *indexShard {
 	return &indexShard{
 		invertedMap:   make(map[uint64]PostingList),
@@ -22,10 +17,7 @@ func newIndexShard(attributeMeta expr.AttributeMetadataStorer) *indexShard {
 	}
 }
 
-func (m *indexShard) toKeys(a *expr.Attribute) []*key {
-	if a == nil {
-		return nil
-	}
+func (m *indexShard) toKeys(a expr.Attribute) []*key {
 
 	var keys []*key
 	for _, v := range a.Values {
@@ -71,7 +63,7 @@ func (m *indexShard) put(hash uint64, p PostingList) {
 	m.invertedMap[hash] = p
 }
 
-func (m *indexShard) Add(c *expr.Conjunction) error {
+func (m *indexShard) Add(c expr.Conjunction) error {
 
 	for _, attr := range c.Attributes {
 		for _, key := range m.toKeys(attr) {
@@ -116,7 +108,7 @@ func NewMemoryIndexer(attributeMeta expr.AttributeMetadataStorer) Indexer {
 	}
 }
 
-func (k *memoryIndex) Add(c *expr.Conjunction) {
+func (k *memoryIndex) Add(c expr.Conjunction) {
 	ksize := c.GetKSize()
 
 	if k.maxKSize < ksize {

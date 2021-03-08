@@ -18,7 +18,7 @@ type AttributeMetadataStorer interface {
 	// Get id of give name/value
 	GetValueID(name string, value string) (uint32, bool)
 	// Creates a new Attribute, based on stored mapping
-	NewAttribute(name string, values []string, contains bool) (*Attribute, error)
+	NewAttribute(name string, values []string, contains bool) (Attribute, error)
 }
 
 // NewAttributeMetadataStorer ...
@@ -34,22 +34,22 @@ type attributeMetadataStore struct {
 	valueToID map[string]map[string]uint32
 }
 
-func (a *attributeMetadataStore) NewAttribute(name string, values []string, contains bool) (*Attribute, error) {
+func (a *attributeMetadataStore) NewAttribute(name string, values []string, contains bool) (Attribute, error) {
 	nid, ok := a.GetNameID(name)
 	if !ok {
-		return nil, errors.New("name not found")
+		return Attribute{}, errors.New("name not found")
 	}
 
 	vids := make([]uint32, len(values))
 	for i, v := range values {
 		vid, ok := a.GetValueID(name, v)
 		if !ok {
-			return nil, errors.New("value not found")
+			return Attribute{}, errors.New("value not found")
 		}
 		vids[i] = vid
 	}
 
-	return &Attribute{
+	return Attribute{
 		Name:     nid,
 		Values:   vids,
 		Contains: contains,

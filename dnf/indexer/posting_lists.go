@@ -22,14 +22,6 @@ type PostingEntry struct {
 // PostingList is a list of PostingItem
 type PostingList []*PostingEntry
 
-// func newPostingList() *PostingList {
-// 	return &PostingList{}
-// }
-
-// func (p PostingList) append(item *PostingEntry) {
-// 	p = append(p, item)
-// }
-
 func (p PostingList) sort() {
 	sort.Slice(p[:], func(i, j int) bool {
 

@@ -31,12 +31,12 @@ func printMemUsage() {
 func Benchmark_kIndexTable_Add(b *testing.B) {
 	k := NewMemoryIndexer(nil)
 
-	for n := 0; n < b.N; n++ {
+	for n := 0; n < 1000000; n++ {
 		id := n + 1
 
-		var attrs []*expr.Attribute
+		var attrs []expr.Attribute
 		for j := 0; j < rand.Intn(10-1)+1; j++ {
-			attrs = append(attrs, &expr.Attribute{
+			attrs = append(attrs, expr.Attribute{
 				Name:     uint32(rand.Intn(200-1) + 1),
 				Values:   []uint32{uint32(rand.Intn(20-1) + 1)},
 				Contains: randBool(),
@@ -45,9 +45,11 @@ func Benchmark_kIndexTable_Add(b *testing.B) {
 
 		k.Add(expr.NewConjunction(id, attrs))
 	}
+
+	printMemUsage()
 }
 
-func getTestAttribute(t *testing.T, m expr.AttributeMetadataStorer, name string, values []string, contains bool) *expr.Attribute {
+func getTestAttribute(t *testing.T, m expr.AttributeMetadataStorer, name string, values []string, contains bool) expr.Attribute {
 	a, err := m.NewAttribute(name, values, contains)
 	assert.NoError(t, err)
 
@@ -70,7 +72,7 @@ func Test_kIndexTable_Match(t *testing.T) {
 
 	k.Add(expr.NewConjunction(
 		1,
-		[]*expr.Attribute{
+		[]expr.Attribute{
 			getTestAttribute(t, metastorer, "age", []string{"3"}, true),
 			getTestAttribute(t, metastorer, "state", []string{"NY"}, true),
 		},
@@ -78,7 +80,7 @@ func Test_kIndexTable_Match(t *testing.T) {
 
 	k.Add(expr.NewConjunction(
 		2,
-		[]*expr.Attribute{
+		[]expr.Attribute{
 			getTestAttribute(t, metastorer, "age", []string{"3"}, true),
 			getTestAttribute(t, metastorer, "gender", []string{"F"}, true),
 		},
@@ -86,7 +88,7 @@ func Test_kIndexTable_Match(t *testing.T) {
 
 	k.Add(expr.NewConjunction(
 		3,
-		[]*expr.Attribute{
+		[]expr.Attribute{
 			getTestAttribute(t, metastorer, "age", []string{"3"}, true),
 			getTestAttribute(t, metastorer, "gender", []string{"M"}, true),
 			getTestAttribute(t, metastorer, "state", []string{"CA"}, false),
@@ -95,7 +97,7 @@ func Test_kIndexTable_Match(t *testing.T) {
 
 	k.Add(expr.NewConjunction(
 		4,
-		[]*expr.Attribute{
+		[]expr.Attribute{
 			getTestAttribute(t, metastorer, "state", []string{"CA"}, true),
 			getTestAttribute(t, metastorer, "gender", []string{"M"}, true),
 		},
@@ -103,14 +105,14 @@ func Test_kIndexTable_Match(t *testing.T) {
 
 	k.Add(expr.NewConjunction(
 		5,
-		[]*expr.Attribute{
+		[]expr.Attribute{
 			getTestAttribute(t, metastorer, "age", []string{"3", "4"}, true),
 		},
 	))
 
 	k.Add(expr.NewConjunction(
 		6,
-		[]*expr.Attribute{
+		[]expr.Attribute{
 			getTestAttribute(t, metastorer, "state", []string{"CA", "NY"}, false),
 		},
 	))

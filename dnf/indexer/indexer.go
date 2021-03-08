@@ -8,7 +8,7 @@ import (
 type Indexer interface {
 	Build() error
 	MaxKSize() int
-	Add(c *expr.Conjunction)
+	Add(c expr.Conjunction)
 	Match(assignment expr.Assignment) []int
 }
 

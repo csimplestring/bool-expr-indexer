@@ -11,13 +11,10 @@ import (
 func Test_indexShard_toKeys(t *testing.T) {
 	m := &indexShard{}
 
-	k0 := m.toKeys(nil)
-	assert.Nil(t, k0)
-
-	k1 := m.toKeys(&expr.Attribute{Name: 1, Values: []uint32{1}})
+	k1 := m.toKeys(expr.Attribute{Name: 1, Values: []uint32{1}})
 	assert.Equal(t, []*key{{Name: 1, Value: 1}}, k1)
 
-	k2 := m.toKeys(&expr.Attribute{Name: 1, Values: []uint32{1, 2}})
+	k2 := m.toKeys(expr.Attribute{Name: 1, Values: []uint32{1, 2}})
 	assert.ElementsMatch(t, []*key{{Name: 1, Value: 1}, {Name: 1, Value: 2}}, k2)
 }
 
