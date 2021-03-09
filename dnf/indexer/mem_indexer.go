@@ -17,11 +17,11 @@ func newIndexShard(attributeMeta expr.AttributeMetadataStorer) *indexShard {
 	}
 }
 
-func (m *indexShard) toKeys(a expr.Attribute) []*key {
+func (m *indexShard) toKeys(a expr.Attribute) []key {
 
-	keys := make([]*key, len(a.Values))
+	keys := make([]key, len(a.Values))
 	for i, v := range a.Values {
-		keys[i] = &key{
+		keys[i] = key{
 			Name:  a.Name,
 			Value: v,
 		}
@@ -29,7 +29,7 @@ func (m *indexShard) toKeys(a expr.Attribute) []*key {
 	return keys
 }
 
-func (m *indexShard) hashKey(k *key) uint64 {
+func (m *indexShard) hashKey(k key) uint64 {
 	return uint64(k.Name)<<32 | uint64(k.Value)
 }
 
@@ -40,7 +40,7 @@ func (m *indexShard) Build() error {
 	return nil
 }
 
-func (m *indexShard) Get(k *key) postingList {
+func (m *indexShard) Get(k key) postingList {
 	h := m.hashKey(k)
 	return m.invertedMap[h]
 }
@@ -71,7 +71,7 @@ func (m *indexShard) Add(c expr.Conjunction) error {
 			hash := m.hashKey(key)
 
 			pList := m.createIfAbsent(hash)
-			pList = append(pList, &postingEntry{
+			pList = append(pList, postingEntry{
 				CID:      c.ID,
 				Contains: attr.Contains,
 			})
@@ -81,9 +81,9 @@ func (m *indexShard) Add(c expr.Conjunction) error {
 	}
 
 	if c.GetKSize() == 0 {
-		hash := m.hashKey(zKey)
+		hash := m.hashKey(*zKey)
 		pList := m.createIfAbsent(hash)
-		pList = append(pList, &postingEntry{
+		pList = append(pList, postingEntry{
 			CID:      c.ID,
 			Contains: true,
 		})
@@ -154,7 +154,7 @@ func (k *memoryIndex) getPostingLists(size int, labels expr.Assignment) []postin
 			return nil
 		}
 
-		k := &key{
+		k := key{
 			Name:  name,
 			Value: value,
 		}
@@ -165,7 +165,7 @@ func (k *memoryIndex) getPostingLists(size int, labels expr.Assignment) []postin
 		candidates = append(candidates, p)
 	}
 	if size == 0 {
-		candidates = append(candidates, idx.Get(zKey))
+		candidates = append(candidates, idx.Get(*zKey))
 	}
 	return candidates
 }
@@ -188,7 +188,7 @@ func (k *memoryIndex) Match(assignment expr.Assignment) []int {
 		}
 
 		pLists.sortByCurrent()
-		for pLists[K-1].current() != eolItem {
+		for pLists[K-1].current() != *eolItem {
 			var nextID int
 
 			if pLists[0].current().CID == pLists[K-1].current().CID {

@@ -20,7 +20,7 @@ type postingEntry struct {
 }
 
 // postingList is a list of PostingItem
-type postingList []*postingEntry
+type postingList []postingEntry
 
 func (p postingList) sort() {
 	sort.Slice(p[:], func(i, j int) bool {
@@ -45,9 +45,9 @@ func newIterator(ref postingList) *plistIter {
 	}
 }
 
-func (p *plistIter) current() *postingEntry {
+func (p *plistIter) current() postingEntry {
 	if p.cur >= len(p.ref) {
-		return eolItem
+		return *eolItem
 	}
 
 	return p.ref[p.cur]
