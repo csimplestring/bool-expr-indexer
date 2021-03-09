@@ -19,12 +19,12 @@ func newIndexShard(attributeMeta expr.AttributeMetadataStorer) *indexShard {
 
 func (m *indexShard) toKeys(a expr.Attribute) []*key {
 
-	var keys []*key
-	for _, v := range a.Values {
-		keys = append(keys, &key{
+	keys := make([]*key, len(a.Values))
+	for i, v := range a.Values {
+		keys[i] = &key{
 			Name:  a.Name,
 			Value: v,
-		})
+		}
 	}
 	return keys
 }
