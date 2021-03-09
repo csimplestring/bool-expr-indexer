@@ -6,13 +6,13 @@ import (
 )
 
 type indexShard struct {
-	invertedMap   map[uint64]PostingList
+	invertedMap   map[uint64]postingList
 	attributeMeta expr.AttributeMetadataStorer
 }
 
 func newIndexShard(attributeMeta expr.AttributeMetadataStorer) *indexShard {
 	return &indexShard{
-		invertedMap:   make(map[uint64]PostingList),
+		invertedMap:   make(map[uint64]postingList),
 		attributeMeta: attributeMeta,
 	}
 }
@@ -40,26 +40,26 @@ func (m *indexShard) Build() error {
 	return nil
 }
 
-func (m *indexShard) Get(k *key) PostingList {
+func (m *indexShard) Get(k *key) postingList {
 	h := m.hashKey(k)
 	return m.invertedMap[h]
 }
 
-func (m *indexShard) createIfAbsent(hash uint64) PostingList {
+func (m *indexShard) createIfAbsent(hash uint64) postingList {
 	v := m.get(hash)
 	if v == nil {
-		p := PostingList{}
+		p := postingList{}
 		m.put(hash, p)
 		return p
 	}
 	return v
 }
 
-func (m *indexShard) get(hash uint64) PostingList {
+func (m *indexShard) get(hash uint64) postingList {
 	return m.invertedMap[hash]
 }
 
-func (m *indexShard) put(hash uint64, p PostingList) {
+func (m *indexShard) put(hash uint64, p postingList) {
 	m.invertedMap[hash] = p
 }
 
@@ -71,7 +71,7 @@ func (m *indexShard) Add(c expr.Conjunction) error {
 			hash := m.hashKey(key)
 
 			pList := m.createIfAbsent(hash)
-			pList = append(pList, &PostingEntry{
+			pList = append(pList, &postingEntry{
 				CID:      c.ID,
 				Contains: attr.Contains,
 			})
@@ -83,7 +83,7 @@ func (m *indexShard) Add(c expr.Conjunction) error {
 	if c.GetKSize() == 0 {
 		hash := m.hashKey(zKey)
 		pList := m.createIfAbsent(hash)
-		pList = append(pList, &PostingEntry{
+		pList = append(pList, &postingEntry{
 			CID:      c.ID,
 			Contains: true,
 		})
@@ -137,13 +137,13 @@ func (k *memoryIndex) MaxKSize() int {
 	return k.maxKSize
 }
 
-func (k *memoryIndex) GetPostingLists(size int, labels expr.Assignment) []PostingList {
+func (k *memoryIndex) getPostingLists(size int, labels expr.Assignment) []postingList {
 	idx := k.sizedIndexes[size]
 	if idx == nil {
 		return nil
 	}
 
-	candidates := make([]PostingList, 1)
+	candidates := make([]postingList, 1)
 	for _, label := range labels {
 		name, found := k.attributeMeta.GetNameID(label.Name)
 		if !found {
@@ -177,7 +177,7 @@ func (k *memoryIndex) Match(assignment expr.Assignment) []int {
 	n := min(len(assignment), k.maxKSize)
 
 	for i := n; i >= 0; i-- {
-		pLists := newPostingLists(k.GetPostingLists(i, assignment))
+		pLists := newPostingLists(k.getPostingLists(i, assignment))
 
 		K := i
 		if K == 0 {

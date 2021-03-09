@@ -6,23 +6,23 @@ import (
 )
 
 // eolItem means end-of-list item, used as the end of a posting list.
-var eolItem *PostingEntry = &PostingEntry{
+var eolItem *postingEntry = &postingEntry{
 	score:    0,
 	CID:      math.MaxInt64,
 	Contains: true,
 }
 
-// PostingEntry store conjunction-id, belongs-to flag, serving as inverted index pointing to Conjunction
-type PostingEntry struct {
+// postingEntry store conjunction-id, belongs-to flag, serving as inverted index pointing to Conjunction
+type postingEntry struct {
 	CID      int
 	Contains bool
 	score    int
 }
 
-// PostingList is a list of PostingItem
-type PostingList []*PostingEntry
+// postingList is a list of PostingItem
+type postingList []*postingEntry
 
-func (p PostingList) sort() {
+func (p postingList) sort() {
 	sort.Slice(p[:], func(i, j int) bool {
 
 		if p[i].CID != p[j].CID {
@@ -33,19 +33,19 @@ func (p PostingList) sort() {
 	})
 }
 
-type pCursor struct {
-	ref PostingList
+type plistIter struct {
+	ref postingList
 	cur int
 }
 
-func newCursor(ref PostingList) *pCursor {
-	return &pCursor{
+func newIterator(ref postingList) *plistIter {
+	return &plistIter{
 		ref: ref,
 		cur: 0,
 	}
 }
 
-func (p *pCursor) current() *PostingEntry {
+func (p *plistIter) current() *postingEntry {
 	if p.cur >= len(p.ref) {
 		return eolItem
 	}
@@ -53,19 +53,20 @@ func (p *pCursor) current() *PostingEntry {
 	return p.ref[p.cur]
 }
 
-func (p *pCursor) skipTo(ID int) {
+func (p *plistIter) skipTo(ID int) {
 	n := len(p.ref)
 	// since p.ref.Items is already sorted in asc order, we do binary search: find the smallest-ID >= ID
 	p.cur = sort.Search(n, func(i int) bool { return p.ref[i].CID >= ID })
 }
 
-type postingLists []*pCursor
+// postingLists is a slice of list iterator
+type postingLists []*plistIter
 
-func newPostingLists(l []PostingList) postingLists {
-	c := make([]*pCursor, len(l))
+func newPostingLists(l []postingList) postingLists {
+	c := make([]*plistIter, len(l))
 
 	for i, v := range l {
-		c[i] = newCursor(v)
+		c[i] = newIterator(v)
 	}
 	return c
 }
