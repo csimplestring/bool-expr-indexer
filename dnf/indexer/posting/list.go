@@ -4,35 +4,35 @@ import "sort"
 
 // List ...
 type List interface {
-	Current() (Entry, bool)
-	SkipTo(ID int)
+	Current() (EntryInt32, bool)
+	SkipTo(ID uint32)
 }
 
 type list struct {
-	entries []Entry
+	entries []EntryInt32
 	cur     int
 }
 
 // NewList creates a read only List
-func NewList(entries []Entry) List {
+func NewList(entries []EntryInt32) List {
 	return &list{
 		entries: entries,
 		cur:     0,
 	}
 }
 
-func (p *list) Current() (Entry, bool) {
+func (p *list) Current() (EntryInt32, bool) {
 	if p.cur >= len(p.entries) {
-		return *EOL, false
+		return EOL, false
 	}
 
 	return p.entries[p.cur], true
 }
 
-func (p *list) SkipTo(ID int) {
+func (p *list) SkipTo(ID uint32) {
 	n := len(p.entries)
 	// since p.ref.Items is already sorted in asc order, we do binary search: find the smallest-ID >= ID
-	p.cur = sort.Search(n, func(i int) bool { return p.entries[i].CID >= ID })
+	p.cur = sort.Search(n, func(i int) bool { return p.entries[i].CID() >= ID })
 }
 
 // Lists ...
@@ -54,11 +54,11 @@ func (l lists) SortByCurrent() {
 		a, _ := l[i].Current()
 		b, _ := l[j].Current()
 
-		if a.CID != b.CID {
-			return a.CID < b.CID
+		if a.CID() != b.CID() {
+			return a.CID() < b.CID()
 		}
 
-		return !a.Contains && b.Contains
+		return !a.Contains() && b.Contains()
 	})
 }
 
