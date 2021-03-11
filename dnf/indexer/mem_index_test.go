@@ -28,92 +28,79 @@ func printMemUsage() {
 	fmt.Printf("\tNumGC = %v\n", m.NumGC)
 }
 
-func Benchmark_kIndexTable_Add(b *testing.B) {
-	k := NewMemoryIndexer(nil)
+// func Benchmark_kIndexTable_Add(b *testing.B) {
+// 	k := NewMemoryIndexer(nil)
 
-	for n := 0; n < 1000000; n++ {
-		id := n + 1
+// 	for n := 0; n < 1000000; n++ {
+// 		id := n + 1
 
-		var attrs []expr.Attribute
-		for j := 0; j < rand.Intn(10-1)+1; j++ {
-			attrs = append(attrs, expr.Attribute{
-				Name:     uint32(rand.Intn(200-1) + 1),
-				Values:   []uint32{uint32(rand.Intn(20-1) + 1)},
-				Contains: randBool(),
-			})
-		}
+// 		var attrs []expr.Attribute
+// 		for j := 0; j < rand.Intn(10-1)+1; j++ {
+// 			attrs = append(attrs, expr.Attribute{
+// 				Name:     uint32(rand.Intn(200-1) + 1),
+// 				Values:   []uint32{uint32(rand.Intn(20-1) + 1)},
+// 				Contains: randBool(),
+// 			})
+// 		}
 
-		k.Add(expr.NewConjunction(id, attrs))
-	}
+// 		k.Add(expr.NewConjunction(id, attrs))
+// 	}
 
-	printMemUsage()
-}
+// 	printMemUsage()
+// }
+// 	assert.NoError(t, err)
 
-func getTestAttribute(t *testing.T, m expr.AttributeMetadataStorer, name string, values []string, contains bool) expr.Attribute {
-	a, err := m.NewAttribute(name, values, contains)
-	assert.NoError(t, err)
-
-	return a
-}
+// 	return a
+// }
 
 func Test_kIndexTable_Match(t *testing.T) {
-	metastorer := expr.NewAttributeMetadataStorer()
-	metastorer.AddNameIDMapping("age", 1)
-	metastorer.AddNameIDMapping("state", 2)
-	metastorer.AddNameIDMapping("gender", 3)
-	metastorer.AddValueIDMapping("age", "3", 3)
-	metastorer.AddValueIDMapping("age", "4", 4)
-	metastorer.AddValueIDMapping("state", "NY", 1)
-	metastorer.AddValueIDMapping("state", "CA", 2)
-	metastorer.AddValueIDMapping("gender", "F", 0)
-	metastorer.AddValueIDMapping("gender", "M", 1)
 
-	k := NewMemoryIndexer(metastorer)
+	k := NewMemoryIndexer()
 
 	k.Add(expr.NewConjunction(
 		1,
-		[]expr.Attribute{
-			getTestAttribute(t, metastorer, "age", []string{"3"}, true),
-			getTestAttribute(t, metastorer, "state", []string{"NY"}, true),
+		[]*expr.Attribute{
+			{Name: "age", Values: []string{"3"}, Contains: true},
+			{Name: "state", Values: []string{"NY"}, Contains: true},
 		},
 	))
 
 	k.Add(expr.NewConjunction(
 		2,
-		[]expr.Attribute{
-			getTestAttribute(t, metastorer, "age", []string{"3"}, true),
-			getTestAttribute(t, metastorer, "gender", []string{"F"}, true),
+		[]*expr.Attribute{
+			{Name: "age", Values: []string{"3"}, Contains: true},
+			{Name: "gender", Values: []string{"F"}, Contains: true},
 		},
 	))
 
 	k.Add(expr.NewConjunction(
 		3,
-		[]expr.Attribute{
-			getTestAttribute(t, metastorer, "age", []string{"3"}, true),
-			getTestAttribute(t, metastorer, "gender", []string{"M"}, true),
-			getTestAttribute(t, metastorer, "state", []string{"CA"}, false),
+		[]*expr.Attribute{
+			{Name: "age", Values: []string{"3"}, Contains: true},
+			{Name: "gender", Values: []string{"M"}, Contains: true},
+			{Name: "state", Values: []string{"CA"}, Contains: false},
 		},
 	))
 
 	k.Add(expr.NewConjunction(
 		4,
-		[]expr.Attribute{
-			getTestAttribute(t, metastorer, "state", []string{"CA"}, true),
-			getTestAttribute(t, metastorer, "gender", []string{"M"}, true),
+		[]*expr.Attribute{
+			{Name: "state", Values: []string{"CA"}, Contains: true},
+			{Name: "gender", Values: []string{"M"}, Contains: true},
 		},
 	))
 
 	k.Add(expr.NewConjunction(
 		5,
-		[]expr.Attribute{
-			getTestAttribute(t, metastorer, "age", []string{"3", "4"}, true),
+		[]*expr.Attribute{
+			{Name: "age", Values: []string{"3", "4"}, Contains: true},
 		},
 	))
 
 	k.Add(expr.NewConjunction(
 		6,
-		[]expr.Attribute{
-			getTestAttribute(t, metastorer, "state", []string{"CA", "NY"}, false),
+		[]*expr.Attribute{
+			{Name: "state", Values: []string{"CA", "NY"}, Contains: false},
 		},
 	))
 

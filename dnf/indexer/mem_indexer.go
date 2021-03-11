@@ -1,27 +1,28 @@
 package indexer
 
 import (
+	"hash/maphash"
+
 	"github.com/csimplestring/bool-expr-indexer/dnf/expr"
 	"github.com/csimplestring/bool-expr-indexer/set"
 )
 
 type indexShard struct {
-	invertedMap   map[uint64]postingList
-	attributeMeta expr.AttributeMetadataStorer
+	invertedMap map[uint64]postingList
+	hash        maphash.Hash
 }
 
-func newIndexShard(attributeMeta expr.AttributeMetadataStorer) *indexShard {
+func newIndexShard() *indexShard {
 	return &indexShard{
-		invertedMap:   make(map[uint64]postingList),
-		attributeMeta: attributeMeta,
+		invertedMap: make(map[uint64]postingList),
 	}
 }
 
-func (m *indexShard) toKeys(a expr.Attribute) []key {
+func (m *indexShard) toKeys(a *expr.Attribute) []*key {
 
-	keys := make([]key, len(a.Values))
+	keys := make([]*key, len(a.Values))
 	for i, v := range a.Values {
-		keys[i] = key{
+		keys[i] = &key{
 			Name:  a.Name,
 			Value: v,
 		}
@@ -29,8 +30,11 @@ func (m *indexShard) toKeys(a expr.Attribute) []key {
 	return keys
 }
 
-func (m *indexShard) hashKey(k key) uint64 {
-	return uint64(k.Name)<<32 | uint64(k.Value)
+func (m *indexShard) hashKey(k *key) uint64 {
+	m.hash.Reset()
+	m.hash.WriteString(k.Name)
+	m.hash.WriteString(k.Value)
+	return m.hash.Sum64()
 }
 
 func (m *indexShard) Build() error {
@@ -40,7 +44,7 @@ func (m *indexShard) Build() error {
 	return nil
 }
 
-func (m *indexShard) Get(k key) postingList {
+func (m *indexShard) Get(k *key) postingList {
 	h := m.hashKey(k)
 	return m.invertedMap[h]
 }
@@ -63,7 +67,7 @@ func (m *indexShard) put(hash uint64, p postingList) {
 	m.invertedMap[hash] = p
 }
 
-func (m *indexShard) Add(c expr.Conjunction) error {
+func (m *indexShard) Add(c *expr.Conjunction) error {
 
 	for _, attr := range c.Attributes {
 		for _, key := range m.toKeys(attr) {
@@ -81,7 +85,7 @@ func (m *indexShard) Add(c expr.Conjunction) error {
 	}
 
 	if c.GetKSize() == 0 {
-		hash := m.hashKey(*zKey)
+		hash := m.hashKey(zKey)
 		pList := m.createIfAbsent(hash)
 		pList = append(pList, postingEntry{
 			CID:      c.ID,
@@ -94,21 +98,19 @@ func (m *indexShard) Add(c expr.Conjunction) error {
 }
 
 type memoryIndex struct {
-	maxKSize      int
-	attributeMeta expr.AttributeMetadataStorer
-	sizedIndexes  map[int]*indexShard
+	maxKSize     int
+	sizedIndexes map[int]*indexShard
 }
 
 // NewMemoryIndexer create a memory stored indexer
-func NewMemoryIndexer(attributeMeta expr.AttributeMetadataStorer) Indexer {
+func NewMemoryIndexer() Indexer {
 	return &memoryIndex{
-		maxKSize:      0,
-		sizedIndexes:  make(map[int]*indexShard),
-		attributeMeta: attributeMeta,
+		maxKSize:     0,
+		sizedIndexes: make(map[int]*indexShard),
 	}
 }
 
-func (k *memoryIndex) Add(c expr.Conjunction) {
+func (k *memoryIndex) Add(c *expr.Conjunction) {
 	ksize := c.GetKSize()
 
 	if k.maxKSize < ksize {
@@ -117,7 +119,7 @@ func (k *memoryIndex) Add(c expr.Conjunction) {
 
 	kidx, exist := k.sizedIndexes[ksize]
 	if !exist {
-		kidx = newIndexShard(k.attributeMeta)
+		kidx = newIndexShard()
 		k.sizedIndexes[ksize] = kidx
 	}
 
@@ -145,18 +147,10 @@ func (k *memoryIndex) getPostingLists(size int, labels expr.Assignment) []postin
 
 	candidates := make([]postingList, 1)
 	for _, label := range labels {
-		name, found := k.attributeMeta.GetNameID(label.Name)
-		if !found {
-			return nil
-		}
-		value, found := k.attributeMeta.GetValueID(label.Name, label.Value)
-		if !found {
-			return nil
-		}
 
-		k := key{
-			Name:  name,
-			Value: value,
+		k := &key{
+			Name:  label.Name,
+			Value: label.Value,
 		}
 		p := idx.Get(k)
 		if len(p) == 0 {
@@ -165,7 +159,7 @@ func (k *memoryIndex) getPostingLists(size int, labels expr.Assignment) []postin
 		candidates = append(candidates, p)
 	}
 	if size == 0 {
-		candidates = append(candidates, idx.Get(*zKey))
+		candidates = append(candidates, idx.Get(zKey))
 	}
 	return candidates
 }
