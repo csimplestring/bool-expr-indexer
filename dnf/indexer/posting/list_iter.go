@@ -2,26 +2,26 @@ package posting
 
 import "sort"
 
-// List ...
-type List interface {
+// ListIter ...
+type ListIter interface {
 	Current() (EntryInt32, bool)
 	SkipTo(ID uint32)
 }
 
-type list struct {
+type listIter struct {
 	entries []EntryInt32
 	cur     int
 }
 
 // NewList creates a read only List
-func NewList(entries []EntryInt32) List {
-	return &list{
+func NewList(entries []EntryInt32) ListIter {
+	return &listIter{
 		entries: entries,
 		cur:     0,
 	}
 }
 
-func (p *list) Current() (EntryInt32, bool) {
+func (p *listIter) Current() (EntryInt32, bool) {
 	if p.cur >= len(p.entries) {
 		return EOL, false
 	}
@@ -29,7 +29,7 @@ func (p *list) Current() (EntryInt32, bool) {
 	return p.entries[p.cur], true
 }
 
-func (p *list) SkipTo(ID uint32) {
+func (p *listIter) SkipTo(ID uint32) {
 	n := len(p.entries)
 	// since p.ref.Items is already sorted in asc order, we do binary search: find the smallest-ID >= ID
 	p.cur = sort.Search(n, func(i int) bool { return p.entries[i].CID() >= ID })
@@ -38,16 +38,16 @@ func (p *list) SkipTo(ID uint32) {
 // Lists ...
 type Lists interface {
 	SortByCurrent()
-	Get(i int) List
+	Get(i int) ListIter
 	Len() int
 }
 
 // NewLists ...
-func NewLists(l []List) Lists {
+func NewLists(l []ListIter) Lists {
 	return lists(l)
 }
 
-type lists []List
+type lists []ListIter
 
 func (l lists) SortByCurrent() {
 	sort.Slice(l[:], func(i, j int) bool {
@@ -62,7 +62,7 @@ func (l lists) SortByCurrent() {
 	})
 }
 
-func (l lists) Get(i int) List {
+func (l lists) Get(i int) ListIter {
 	return l[i]
 }
 

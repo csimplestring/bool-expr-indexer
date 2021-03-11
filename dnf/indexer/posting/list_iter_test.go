@@ -57,7 +57,7 @@ func TestNewLists(t *testing.T) {
 		e4,
 	})
 
-	lists := NewLists([]List{l1, l2, l3})
+	lists := NewLists([]ListIter{l1, l2, l3})
 	lists.SortByCurrent()
 
 	assert.Equal(t, l1, lists.Get(0))
