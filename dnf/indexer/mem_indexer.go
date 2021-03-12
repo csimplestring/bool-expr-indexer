@@ -183,7 +183,7 @@ func (k *memoryIndex) Match(assignment expr.Assignment) []int {
 		if K == 0 {
 			K = 1
 		}
-		if pLists.len() < K {
+		if pLists.Len() < K {
 			continue
 		}
 
@@ -195,7 +195,7 @@ func (k *memoryIndex) Match(assignment expr.Assignment) []int {
 
 				if pLists[0].current().Contains() == false {
 					rejectID := pLists[0].current().CID()
-					for L := K; L <= pLists.len()-1; L++ {
+					for L := K; L <= pLists.Len()-1; L++ {
 						if pLists[L].current().CID() == rejectID {
 							pLists[L].skipTo(int(rejectID) + 1)
 						} else {

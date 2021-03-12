@@ -8,12 +8,17 @@ import (
 	"time"
 
 	"github.com/csimplestring/bool-expr-indexer/dnf/expr"
+	"github.com/dchest/uniuri"
 	"github.com/stretchr/testify/assert"
 )
 
 func randBool() bool {
 	rand.Seed(time.Now().UnixNano())
-	return rand.Intn(2) == 1
+	n := rand.Intn(100)
+	if n <= 1 {
+		return false
+	}
+	return true
 }
 
 func printMemUsage() {
@@ -28,30 +33,74 @@ func printMemUsage() {
 	fmt.Printf("\tNumGC = %v\n", m.NumGC)
 }
 
-// func Benchmark_kIndexTable_Add(b *testing.B) {
-// 	k := NewMemoryIndexer(nil)
+func getTestAttributes() (map[string][]string, []string) {
 
-// 	for n := 0; n < 1000000; n++ {
-// 		id := n + 1
+	m := make(map[string][]string)
 
-// 		var attrs []expr.Attribute
-// 		for j := 0; j < rand.Intn(10-1)+1; j++ {
-// 			attrs = append(attrs, expr.Attribute{
-// 				Name:     uint32(rand.Intn(200-1) + 1),
-// 				Values:   []uint32{uint32(rand.Intn(20-1) + 1)},
-// 				Contains: randBool(),
-// 			})
-// 		}
+	names := make([]string, 1000)
+	for i := 0; i < 1000; i++ {
+		nameLen := rand.Intn(8) + 1
+		name := uniuri.NewLen(nameLen)
 
-// 		k.Add(expr.NewConjunction(id, attrs))
-// 	}
+		valuesLen := rand.Intn(20) + 1
+		values := make([]string, valuesLen)
+		for j := 0; j < valuesLen; j++ {
+			values[j] = uniuri.NewLen(valuesLen)
+		}
 
-// 	printMemUsage()
-// }
-// 	assert.NoError(t, err)
+		m[name] = values
+		names[i] = name
+	}
 
-// 	return a
-// }
+	return m, names
+}
+
+func getTestAssignment(n int, attrs map[string][]string, names []string) expr.Assignment {
+	labels := make([]expr.Label, n)
+	for i := 0; i < n; i++ {
+		name := names[rand.Intn(len(names))]
+		values := attrs[name]
+		labels[i] = expr.Label{
+			Name:  name,
+			Value: values[0],
+		}
+	}
+	return labels
+}
+
+func Benchmark_Match(b *testing.B) {
+	testAttrs, testAttrNames := getTestAttributes()
+
+	k := NewMemoryIndexer()
+	for n := 0; n < 1000000; n++ {
+		id := n + 1
+
+		n1 := rand.Intn(5) + 1
+		attrs := make([]*expr.Attribute, n1)
+		for i := 0; i < n1; i++ {
+
+			name := testAttrNames[rand.Intn(len(testAttrNames))]
+			attrs[i] = &expr.Attribute{
+				Name:     name,
+				Values:   testAttrs[name],
+				Contains: randBool(),
+			}
+		}
+
+		k.Add(expr.NewConjunction(id, attrs))
+	}
+	k.Build()
+
+	assignments := make([]expr.Assignment, 10000)
+	for i := 0; i < 100; i++ {
+		assignments[i] = getTestAssignment(10, testAttrs, testAttrNames)
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		k.Match(assignments[88])
+	}
+}
 
 func Test_kIndexTable_Match(t *testing.T) {
 

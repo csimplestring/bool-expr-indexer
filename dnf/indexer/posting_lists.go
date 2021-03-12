@@ -43,7 +43,7 @@ func (p *plistIter) current() posting.EntryInt32 {
 func (p *plistIter) skipTo(ID int) {
 	n := len(p.ref)
 	// since p.ref.Items is already sorted in asc order, we do binary search: find the smallest-ID >= ID
-	p.cur = sort.Search(n, func(i int) bool { return int(p.ref[i].CID()) >= ID })
+	p.cur = search(p.cur, n, func(i int) bool { return int(p.ref[i].CID()) >= ID })
 }
 
 // postingLists is a slice of list iterator
@@ -58,19 +58,25 @@ func newPostingLists(l []postingList) postingLists {
 	return c
 }
 
-func (p postingLists) len() int {
+func (p postingLists) Less(i, j int) bool {
+	a := p[i].current()
+	b := p[j].current()
+
+	if a.CID() != b.CID() {
+		return a.CID() < b.CID()
+	}
+
+	return !a.Contains() && b.Contains()
+}
+
+func (p postingLists) Swap(i, j int) {
+	p[j], p[i] = p[i], p[j]
+}
+
+func (p postingLists) Len() int {
 	return len(p)
 }
 
 func (p postingLists) sortByCurrent() {
-	sort.Slice(p[:], func(i, j int) bool {
-		a := p[i].current()
-		b := p[j].current()
-
-		if a.CID() != b.CID() {
-			return a.CID() < b.CID()
-		}
-
-		return !a.Contains() && b.Contains()
-	})
+	sort.Sort(p)
 }
