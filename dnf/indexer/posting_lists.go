@@ -90,13 +90,4 @@ func (p postingLists) sortByCurrent() {
 			p[i], p[index] = p[index], p[i]
 		}
 	}
-
-	// sort.Slice(p, func(i, j int) bool {
-
-	// 	if p[i].current().CID() != p[j].current().CID() {
-	// 		return p[i].current().CID() < p[j].current().CID()
-	// 	}
-
-	// 	return !p[i].current().Contains() && p[j].current().Contains()
-	// })
 }
