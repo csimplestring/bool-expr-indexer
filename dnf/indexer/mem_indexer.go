@@ -18,34 +18,32 @@ func newIndexShard() *indexShard {
 	}
 }
 
-func (m *indexShard) toKeys(a *expr.Attribute) []*key {
-
-	keys := make([]*key, len(a.Values))
-	for i, v := range a.Values {
-		keys[i] = &key{
-			Name:  a.Name,
-			Value: v,
-		}
-	}
-	return keys
-}
-
-func (m *indexShard) hashKey(k *key) uint64 {
+func (m *indexShard) hashKey(name string, value string) uint64 {
 	m.hash.Reset()
-	m.hash.WriteString(k.Name)
-	m.hash.WriteString(k.Value)
+	m.hash.WriteString(name)
+	m.hash.WriteString(value)
 	return m.hash.Sum64()
 }
 
 func (m *indexShard) Build() error {
-	for _, pList := range m.invertedMap {
+
+	for k, pList := range m.invertedMap {
 		pList.sort()
+		l := make(postingList, len(pList), len(pList))
+		for i := 0; i < len(pList); i++ {
+			l[i] = postingEntry{
+				CID:      pList[i].CID,
+				Contains: pList[i].Contains,
+			}
+		}
+		pList = nil
+		m.invertedMap[k] = l
 	}
 	return nil
 }
 
-func (m *indexShard) Get(k *key) postingList {
-	h := m.hashKey(k)
+func (m *indexShard) Get(name string, value string) postingList {
+	h := m.hashKey(name, value)
 	return m.invertedMap[h]
 }
 
@@ -67,15 +65,21 @@ func (m *indexShard) put(hash uint64, p postingList) {
 	m.invertedMap[hash] = p
 }
 
+func (m *indexShard) appen(p postingList, entry postingEntry) postingList {
+	p = append(p, entry)
+	return p
+}
+
 func (m *indexShard) Add(c *expr.Conjunction) error {
 
 	for _, attr := range c.Attributes {
-		for _, key := range m.toKeys(attr) {
+		for _, value := range attr.Values {
 
-			hash := m.hashKey(key)
+			hash := m.hashKey(attr.Name, value)
 
 			pList := m.createIfAbsent(hash)
-			pList = append(pList, postingEntry{
+
+			pList = m.appen(pList, postingEntry{
 				CID:      c.ID,
 				Contains: attr.Contains,
 			})
@@ -85,7 +89,7 @@ func (m *indexShard) Add(c *expr.Conjunction) error {
 	}
 
 	if c.GetKSize() == 0 {
-		hash := m.hashKey(zKey)
+		hash := m.hashKey(zKey.Name, zKey.Value)
 		pList := m.createIfAbsent(hash)
 		pList = append(pList, postingEntry{
 			CID:      c.ID,
@@ -148,18 +152,14 @@ func (k *memoryIndex) getPostingLists(size int, labels expr.Assignment) []postin
 	candidates := make([]postingList, 1)
 	for _, label := range labels {
 
-		k := &key{
-			Name:  label.Name,
-			Value: label.Value,
-		}
-		p := idx.Get(k)
+		p := idx.Get(label.Name, label.Value)
 		if len(p) == 0 {
 			continue
 		}
 		candidates = append(candidates, p)
 	}
 	if size == 0 {
-		candidates = append(candidates, idx.Get(zKey))
+		candidates = append(candidates, idx.Get(zKey.Name, zKey.Value))
 	}
 	return candidates
 }
