@@ -156,7 +156,7 @@ func (k *memoryIndex) getPostingLists(size int, labels expr.Assignment) []postin
 		return nil
 	}
 
-	candidates := make([]postingList, 1)
+	candidates := make([]postingList, 0, len(labels)+1)
 	for _, label := range labels {
 
 		p := idx.Get(label.Name, label.Value)
