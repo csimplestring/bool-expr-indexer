@@ -1,35 +1,22 @@
 package indexer
 
 import (
-	"math"
 	"sort"
+
+	"github.com/csimplestring/bool-expr-indexer/dnf/indexer/posting"
 )
 
-// eolItem means end-of-list item, used as the end of a posting list.
-var eolItem *postingEntry = &postingEntry{
-	score:    0,
-	CID:      math.MaxInt64,
-	Contains: true,
-}
-
-// postingEntry store conjunction-id, belongs-to flag, serving as inverted index pointing to Conjunction
-type postingEntry struct {
-	CID      int
-	Contains bool
-	score    int
-}
-
 // postingList is a list of PostingItem
-type postingList []postingEntry
+type postingList []posting.EntryInt32
 
 func (p postingList) sort() {
 	sort.Slice(p[:], func(i, j int) bool {
 
-		if p[i].CID != p[j].CID {
-			return p[i].CID < p[j].CID
+		if p[i].CID() != p[j].CID() {
+			return p[i].CID() < p[j].CID()
 		}
 
-		return !p[i].Contains && p[j].Contains
+		return !p[i].Contains() && p[j].Contains()
 	})
 }
 
@@ -45,9 +32,9 @@ func newIterator(ref postingList) *plistIter {
 	}
 }
 
-func (p *plistIter) current() postingEntry {
+func (p *plistIter) current() posting.EntryInt32 {
 	if p.cur >= len(p.ref) {
-		return *eolItem
+		return posting.EOL()
 	}
 
 	return p.ref[p.cur]
@@ -56,7 +43,7 @@ func (p *plistIter) current() postingEntry {
 func (p *plistIter) skipTo(ID int) {
 	n := len(p.ref)
 	// since p.ref.Items is already sorted in asc order, we do binary search: find the smallest-ID >= ID
-	p.cur = sort.Search(n, func(i int) bool { return p.ref[i].CID >= ID })
+	p.cur = sort.Search(n, func(i int) bool { return int(p.ref[i].CID()) >= ID })
 }
 
 // postingLists is a slice of list iterator
@@ -80,10 +67,10 @@ func (p postingLists) sortByCurrent() {
 		a := p[i].current()
 		b := p[j].current()
 
-		if a.CID != b.CID {
-			return a.CID < b.CID
+		if a.CID() != b.CID() {
+			return a.CID() < b.CID()
 		}
 
-		return !a.Contains && b.Contains
+		return !a.Contains() && b.Contains()
 	})
 }
