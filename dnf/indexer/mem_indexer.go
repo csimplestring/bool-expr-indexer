@@ -5,7 +5,6 @@ import (
 
 	"github.com/csimplestring/bool-expr-indexer/dnf/expr"
 	"github.com/csimplestring/bool-expr-indexer/dnf/indexer/posting"
-	"github.com/csimplestring/bool-expr-indexer/set"
 )
 
 type indexShard struct {
@@ -173,7 +172,7 @@ func (k *memoryIndex) getPostingLists(size int, labels expr.Assignment) []postin
 
 // Match finds the matched conjunctions given an assignment.
 func (k *memoryIndex) Match(assignment expr.Assignment) []int {
-	results := set.IntHashSet()
+	results := make([]int, 0, 1024) // set.IntHashSet()
 
 	n := min(len(assignment), k.maxKSize)
 
@@ -205,7 +204,7 @@ func (k *memoryIndex) Match(assignment expr.Assignment) []int {
 					}
 
 				} else {
-					results.Add(int(pLists[K-1].current().CID()))
+					results = append(results, int(pLists[K-1].current().CID()))
 				}
 
 				nextID = pLists[K-1].current().CID() + 1
@@ -222,5 +221,5 @@ func (k *memoryIndex) Match(assignment expr.Assignment) []int {
 
 	}
 
-	return results.ToSlice()
+	return results
 }
