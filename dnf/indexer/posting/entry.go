@@ -9,10 +9,12 @@ const idMask uint32 = 0b111111111111111111111111
 const scoreMask uint32 = 0b01111111000000000000000000000000
 const maxID uint32 = 16777215
 
+var EOL EntryInt32 = EntryInt32((1 << 31) | (0 << 24) | maxID)
+
 // EOL means end-of-list item, used as the end of a posting list.
-func EOL() EntryInt32 {
-	return EntryInt32((1 << 31) | (0 << 24) | maxID)
-}
+// func EOL() EntryInt32 {
+// 	return EntryInt32((1 << 31) | (0 << 24) | maxID)
+// }
 
 // EntryInt32 is
 // the 32nd bit is the 'belongsTo' flag: 1 -> belongs, 0 -> not belongs

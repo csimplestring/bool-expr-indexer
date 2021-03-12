@@ -98,7 +98,7 @@ func Benchmark_Match(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		k.Match(assignments[88])
+		k.Match(assignments[rand.Intn(100)])
 	}
 }
 

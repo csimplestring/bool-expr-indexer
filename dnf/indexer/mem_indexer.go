@@ -188,7 +188,8 @@ func (k *memoryIndex) Match(assignment expr.Assignment) []int {
 		}
 
 		pLists.sortByCurrent()
-		for pLists[K-1].current() != posting.EOL() {
+		//sort.Sort(pLists)
+		for pLists[K-1].current() != posting.EOL {
 			var nextID uint32
 
 			if pLists[0].current().CID() == pLists[K-1].current().CID() {

@@ -23,7 +23,7 @@ func NewList(entries []EntryInt32) ListIter {
 
 func (p *listIter) Current() (EntryInt32, bool) {
 	if p.cur >= len(p.entries) {
-		return EOL(), false
+		return EOL, false
 	}
 
 	return p.entries[p.cur], true

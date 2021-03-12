@@ -34,7 +34,7 @@ func newIterator(ref postingList) *plistIter {
 
 func (p *plistIter) current() posting.EntryInt32 {
 	if p.cur >= len(p.ref) {
-		return posting.EOL()
+		return posting.EOL
 	}
 
 	return p.ref[p.cur]
@@ -78,5 +78,25 @@ func (p postingLists) Len() int {
 }
 
 func (p postingLists) sortByCurrent() {
-	sort.Sort(p)
+	for i := 0; i < len(p)-1; i++ {
+		min, index := p[i], i
+		for j := i + 1; j < len(p); j++ {
+			if p[j].current().CID() < min.current().CID() || (p[j].current().CID() == min.current().CID() && !p[j].current().Contains() && min.current().Contains()) {
+				min, index = p[j], j
+			}
+
+		}
+		if i != index {
+			p[i], p[index] = p[index], p[i]
+		}
+	}
+
+	// sort.Slice(p, func(i, j int) bool {
+
+	// 	if p[i].current().CID() != p[j].current().CID() {
+	// 		return p[i].current().CID() < p[j].current().CID()
+	// 	}
+
+	// 	return !p[i].current().Contains() && p[j].current().Contains()
+	// })
 }

@@ -18,7 +18,7 @@ func TestNewList(t *testing.T) {
 
 	l0 := NewList([]EntryInt32{})
 	c, next := l0.Current()
-	assert.Equal(t, EOL(), c)
+	assert.Equal(t, EOL, c)
 	assert.False(t, next)
 
 	l1 := NewList(entries)
@@ -33,7 +33,7 @@ func TestNewList(t *testing.T) {
 
 	l1.SkipTo(4)
 	c, next = l1.Current()
-	assert.Equal(t, EOL(), c)
+	assert.Equal(t, EOL, c)
 	assert.False(t, next)
 }
 

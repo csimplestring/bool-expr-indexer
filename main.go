@@ -14,7 +14,11 @@ import (
 
 func randBool() bool {
 	rand.Seed(time.Now().UnixNano())
-	return rand.Intn(2) == 1
+	// n := rand.Intn(100)
+	// if n <= 1 {
+	// 	return false
+	// }
+	return true
 }
 
 func printMemUsage() {
@@ -51,8 +55,28 @@ func getTestAttributes() (map[string][]string, []string) {
 	return m, names
 }
 
+func getTestAssignment(n int, attrs map[string][]string, names []string) expr.Assignment {
+	labels := make([]expr.Label, n)
+	for i := 0; i < n; i++ {
+		name := names[rand.Intn(len(names))]
+		values := attrs[name]
+
+		// var v string
+		// n2 := rand.Intn(100)
+		// if n2 >= len(values) {
+		// 	v = ""
+		// } else {
+		// 	v = values[n2]
+		// }
+		labels[i] = expr.Label{
+			Name:  name,
+			Value: values[0],
+		}
+	}
+	return labels
+}
+
 func main() {
-	defer profile.Start(profile.MemProfile).Stop()
 
 	testAttrs, attrNames := getTestAttributes()
 
@@ -63,7 +87,7 @@ func main() {
 	for n := 0; n < 1000000; n++ {
 		id := n + 1
 
-		n1 := rand.Intn(5) + 1
+		n1 := rand.Intn(2) + 1
 		attrs := make([]*expr.Attribute, n1)
 		for i := 0; i < n1; i++ {
 
@@ -75,13 +99,29 @@ func main() {
 			}
 		}
 
-		k.Add(expr.NewConjunction(id, attrs))
+		conj := expr.NewConjunction(id, attrs)
+
+		k.Add(conj)
+		// b, _ := json.Marshal(conj)
+		// fmt.Println(string(b))
 	}
 
 	k.Build()
 
 	runtime.GC()
 
-	k.MaxKSize()
-	printMemUsage()
+	fmt.Println()
+
+	assignments := make([]expr.Assignment, 10000)
+	for i := 0; i < 10000; i++ {
+		assignments[i] = getTestAssignment(5, testAttrs, attrNames)
+	}
+
+	defer profile.Start(profile.CPUProfile).Stop()
+
+	for i := 0; i < 10000; i++ {
+
+		k.Match(assignments[i])
+
+	}
 }
