@@ -60,7 +60,7 @@ func main() {
 
 	printMemUsage()
 
-	for n := 0; n < 1000000; n++ {
+	for n := 0; n < 100000; n++ {
 		id := n + 1
 
 		n1 := rand.Intn(5) + 1

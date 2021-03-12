@@ -1,7 +1,6 @@
 package indexer
 
 import (
-	"fmt"
 	"hash/maphash"
 
 	"github.com/csimplestring/bool-expr-indexer/dnf/expr"
@@ -14,7 +13,6 @@ type indexShard struct {
 	zeroKey         uint64
 	invertedMap     map[uint64]postingList
 	hash            maphash.Hash
-	indexStats      *indexStats
 }
 
 func newIndexShard(ksize int) *indexShard {
@@ -30,7 +28,6 @@ func newIndexShard(ksize int) *indexShard {
 		conjunctionSize: ksize,
 		hash:            hasher,
 		invertedMap:     make(map[uint64]postingList),
-		indexStats:      &indexStats{plistSizeStats: make(map[uint64]int)},
 	}
 }
 
@@ -45,18 +42,7 @@ func (m *indexShard) Build() error {
 
 	for _, pList := range m.invertedMap {
 		pList.sort()
-		// l := make(postingList, len(pList), len(pList))
-		// for i := 0; i < len(pList); i++ {
-		// 	entry, err := posting.NewEntryInt32(pList[i].CID(), pList[i].Contains(), pList[i].Score())
-		// 	if err != nil {
-		// 		return err
-		// 	}
-		// 	l[i] = entry
-		// }
-		// pList = nil
-		// m.invertedMap[k] = l
 	}
-	m.ShowStats()
 	return nil
 }
 
@@ -88,28 +74,6 @@ func (m *indexShard) appen(p postingList, entry posting.EntryInt32) postingList 
 	return p
 }
 
-type indexStats struct {
-	plistSizeStats map[uint64]int
-}
-
-func (s *indexStats) Add(hash uint64) {
-	_, ok := s.plistSizeStats[hash]
-	if !ok {
-		s.plistSizeStats[hash] = 0
-	}
-	s.plistSizeStats[hash]++
-}
-
-func (m *indexShard) ShowStats() {
-	plistCount := len(m.indexStats.plistSizeStats)
-	n := 0
-	for _, s := range m.indexStats.plistSizeStats {
-		n += s
-	}
-	fmt.Printf("ksize of index: %d ", m.conjunctionSize)
-	fmt.Printf("avg posting list size: %d\n", n/plistCount)
-}
-
 func (m *indexShard) Add(c *expr.Conjunction) error {
 
 	for _, attr := range c.Attributes {
@@ -127,7 +91,6 @@ func (m *indexShard) Add(c *expr.Conjunction) error {
 			pList = m.appen(pList, entry)
 
 			m.put(hash, pList)
-			m.indexStats.Add(hash)
 		}
 	}
 
