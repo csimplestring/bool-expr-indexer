@@ -43,7 +43,12 @@ func (p *plistIter) current() posting.EntryInt32 {
 func (p *plistIter) skipTo(ID int) {
 	n := len(p.ref)
 	// since p.ref.Items is already sorted in asc order, we do binary search: find the smallest-ID >= ID
-	p.cur = search(p.cur, n, func(i int) bool { return int(p.ref[i].CID()) >= ID })
+	// p.cur = search(p.cur, n, func(i int) bool { return int(p.ref[i].CID()) >= ID })
+	i := p.cur
+	for i < n && int(p.ref[i].CID()) < ID {
+		i++
+	}
+	p.cur = i
 }
 
 // postingLists is a slice of list iterator
