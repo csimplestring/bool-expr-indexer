@@ -188,7 +188,6 @@ func (k *memoryIndex) Match(assignment expr.Assignment) []int {
 		}
 
 		pLists.sortByCurrent()
-		//sort.Sort(pLists)
 		for pLists[K-1].current() != posting.EOL {
 			var nextID uint32
 
@@ -198,7 +197,7 @@ func (k *memoryIndex) Match(assignment expr.Assignment) []int {
 					rejectID := pLists[0].current().CID()
 					for L := K; L <= pLists.Len()-1; L++ {
 						if pLists[L].current().CID() == rejectID {
-							pLists[L].skipTo(int(rejectID) + 1)
+							pLists[L].skipTo(rejectID + 1)
 						} else {
 							break
 						}
@@ -215,7 +214,7 @@ func (k *memoryIndex) Match(assignment expr.Assignment) []int {
 			}
 
 			for L := 0; L <= K-1; L++ {
-				pLists[L].skipTo(int(nextID))
+				pLists[L].skipTo(nextID)
 			}
 			pLists.sortByCurrent()
 		}

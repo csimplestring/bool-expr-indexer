@@ -60,9 +60,16 @@ func getTestAssignment(n int, attrs map[string][]string, names []string) expr.As
 	for i := 0; i < n; i++ {
 		name := names[rand.Intn(len(names))]
 		values := attrs[name]
+
+		value := values[0]
+		flag := randBool()
+		if flag {
+			value = ""
+		}
+
 		labels[i] = expr.Label{
 			Name:  name,
-			Value: values[0],
+			Value: value,
 		}
 	}
 	return labels

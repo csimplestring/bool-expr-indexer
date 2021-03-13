@@ -40,12 +40,12 @@ func (p *plistIter) current() posting.EntryInt32 {
 	return p.ref[p.cur]
 }
 
-func (p *plistIter) skipTo(ID int) {
+func (p *plistIter) skipTo(ID uint32) {
 	n := len(p.ref)
-	// since p.ref.Items is already sorted in asc order, we do binary search: find the smallest-ID >= ID
-	// p.cur = search(p.cur, n, func(i int) bool { return int(p.ref[i].CID()) >= ID })
+	// since p.ref.Items is already sorted in asc order, we do search: find the smallest-ID >= ID
+	// the binary search is not used
 	i := p.cur
-	for i < n && int(p.ref[i].CID()) < ID {
+	for i < n && p.ref[i].CID() < ID {
 		i++
 	}
 	p.cur = i
@@ -63,26 +63,14 @@ func newPostingLists(l []postingList) postingLists {
 	return c
 }
 
-func (p postingLists) Less(i, j int) bool {
-	a := p[i].current()
-	b := p[j].current()
-
-	if a.CID() != b.CID() {
-		return a.CID() < b.CID()
-	}
-
-	return !a.Contains() && b.Contains()
-}
-
-func (p postingLists) Swap(i, j int) {
-	p[j], p[i] = p[i], p[j]
-}
-
 func (p postingLists) Len() int {
 	return len(p)
 }
 
 func (p postingLists) sortByCurrent() {
+	// we implement the selective sort by own because:
+	// 1. the size of postingLists is usually small and the changes of position happens not frequently
+	// 2. the built-in sort.Sort function takes much time and extra allocation happens, benchmark shows 5x times slower
 	for i := 0; i < len(p)-1; i++ {
 		min, index := p[i], i
 		for j := i + 1; j < len(p); j++ {
