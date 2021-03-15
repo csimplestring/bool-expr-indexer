@@ -107,6 +107,7 @@ func (m *indexShard) Add(c *expr.Conjunction) error {
 	return nil
 }
 
+// memoryIndex implements the Indexer interface and stores all the entries in memory.
 type memoryIndex struct {
 	maxKSize     int
 	sizedIndexes map[int]*indexShard
@@ -172,7 +173,7 @@ func (k *memoryIndex) getPostingLists(size int, labels expr.Assignment) []postin
 
 // Match finds the matched conjunctions given an assignment.
 func (k *memoryIndex) Match(assignment expr.Assignment) []int {
-	results := make([]int, 0, 1024) // set.IntHashSet()
+	results := make([]int, 0, 1024)
 
 	n := min(len(assignment), k.maxKSize)
 

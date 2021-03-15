@@ -4,7 +4,7 @@ import (
 	"github.com/csimplestring/bool-expr-indexer/dnf/expr"
 )
 
-// Indexer shards the Indexer by conjunction size.
+// Indexer defines the top level indexer interface
 type Indexer interface {
 	Build() error
 	MaxKSize() int
