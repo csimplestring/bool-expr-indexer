@@ -15,4 +15,11 @@ entry: <conjunction-id, boolean flag(belong or not), score>
 entries are sorted by conjunction-id, bool-flag ascendingly
 there is a special post-list Z, for zero-size conjunction
 
-
+- scoring pruning
+- logging monitoring 
+- lock for RW indexing
+- computation/storage separation: different index-store options: redis, memory
+- HA configuration distributed
+- http, grpc api
+- web UI
+- plugin: CDC read
