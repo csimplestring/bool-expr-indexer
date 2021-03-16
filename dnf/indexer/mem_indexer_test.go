@@ -75,11 +75,11 @@ func getTestAssignment(n int, attrs map[string][]string, names []string) expr.As
 	return labels
 }
 
-func Benchmark_Match(b *testing.B) {
+func getIndexerAndAssignment(conjunctionNum, assignmentNum, assignmentAvgSize int) (Indexer, []expr.Assignment) {
 	testAttrs, testAttrNames := getTestAttributes()
 
 	k := NewMemoryIndexer()
-	for n := 0; n < 1000000; n++ {
+	for n := 0; n < conjunctionNum; n++ {
 		id := n + 1
 
 		n1 := rand.Intn(5) + 1
@@ -98,15 +98,122 @@ func Benchmark_Match(b *testing.B) {
 	}
 	k.Build()
 
-	assignments := make([]expr.Assignment, 10000)
-	for i := 0; i < 100; i++ {
-		assignments[i] = getTestAssignment(10, testAttrs, testAttrNames)
+	assignments := make([]expr.Assignment, assignmentNum)
+	for i := 0; i < assignmentNum; i++ {
+		assignments[i] = getTestAssignment(assignmentAvgSize, testAttrs, testAttrNames)
 	}
 
+	return k, assignments
+}
+
+var benchmarkResults []int
+
+func Benchmark_Match_10000_20(b *testing.B) {
+
+	k, assignments := getIndexerAndAssignment(10000, 10000, 20)
+
 	b.ResetTimer()
+	var result []int
 	for i := 0; i < b.N; i++ {
-		k.Match(assignments[rand.Intn(100)])
+		result = k.Match(assignments[rand.Intn(10000)])
 	}
+	benchmarkResults = result
+}
+
+func Benchmark_Match_100000_20(b *testing.B) {
+
+	k, assignments := getIndexerAndAssignment(100000, 10000, 20)
+
+	b.ResetTimer()
+	var result []int
+	for i := 0; i < b.N; i++ {
+		result = k.Match(assignments[rand.Intn(10000)])
+	}
+	benchmarkResults = result
+}
+
+func Benchmark_Match_1000000_20(b *testing.B) {
+
+	k, assignments := getIndexerAndAssignment(1000000, 10000, 20)
+
+	b.ResetTimer()
+	var result []int
+	for i := 0; i < b.N; i++ {
+		result = k.Match(assignments[rand.Intn(10000)])
+	}
+	benchmarkResults = result
+}
+
+func Benchmark_Match_10000_30(b *testing.B) {
+
+	k, assignments := getIndexerAndAssignment(10000, 10000, 30)
+
+	b.ResetTimer()
+	var result []int
+	for i := 0; i < b.N; i++ {
+		result = k.Match(assignments[rand.Intn(10000)])
+	}
+	benchmarkResults = result
+}
+
+func Benchmark_Match_100000_30(b *testing.B) {
+
+	k, assignments := getIndexerAndAssignment(100000, 10000, 30)
+
+	b.ResetTimer()
+	var result []int
+	for i := 0; i < b.N; i++ {
+		result = k.Match(assignments[rand.Intn(10000)])
+	}
+	benchmarkResults = result
+}
+
+func Benchmark_Match_1000000_30(b *testing.B) {
+
+	k, assignments := getIndexerAndAssignment(1000000, 10000, 30)
+
+	b.ResetTimer()
+	var result []int
+	for i := 0; i < b.N; i++ {
+		result = k.Match(assignments[rand.Intn(10000)])
+	}
+	benchmarkResults = result
+}
+
+func Benchmark_Match_10000_40(b *testing.B) {
+
+	k, assignments := getIndexerAndAssignment(10000, 10000, 40)
+
+	b.ResetTimer()
+	var result []int
+	for i := 0; i < b.N; i++ {
+		result = k.Match(assignments[rand.Intn(10000)])
+	}
+	benchmarkResults = result
+}
+
+func Benchmark_Match_100000_40(b *testing.B) {
+
+	k, assignments := getIndexerAndAssignment(100000, 10000, 40)
+
+	b.ResetTimer()
+	var result []int
+	for i := 0; i < b.N; i++ {
+		result = k.Match(assignments[rand.Intn(10000)])
+	}
+	benchmarkResults = result
+}
+
+func Benchmark_Match_1000000_40(b *testing.B) {
+
+	k, assignments := getIndexerAndAssignment(1000000, 10000, 40)
+
+	b.ResetTimer()
+	var result []int
+	for i := 0; i < b.N; i++ {
+		result = k.Match(assignments[rand.Intn(10000)])
+	}
+	benchmarkResults = result
 }
 
 func Test_kIndexTable_Match(t *testing.T) {
