@@ -10,7 +10,7 @@ import (
 type indexShard struct {
 	conjunctionSize int
 	zeroKey         uint64
-	invertedMap     map[uint64]postingList
+	invertedMap     map[uint64]posting.List
 	hash            maphash.Hash
 }
 
@@ -26,7 +26,7 @@ func newIndexShard(ksize int) *indexShard {
 		zeroKey:         zeroKey,
 		conjunctionSize: ksize,
 		hash:            hasher,
-		invertedMap:     make(map[uint64]postingList),
+		invertedMap:     make(map[uint64]posting.List),
 	}
 }
 
@@ -40,35 +40,35 @@ func (m *indexShard) hashKey(name string, value string) uint64 {
 func (m *indexShard) Build() error {
 
 	for _, pList := range m.invertedMap {
-		pList.sort()
+		pList.Sort()
 	}
 	return nil
 }
 
-func (m *indexShard) Get(name string, value string) postingList {
+func (m *indexShard) Get(name string, value string) posting.List {
 	h := m.hashKey(name, value)
 	return m.invertedMap[h]
 }
 
-func (m *indexShard) createIfAbsent(hash uint64) postingList {
+func (m *indexShard) createIfAbsent(hash uint64) posting.List {
 	v := m.get(hash)
 	if v == nil {
-		p := make(postingList, 0, 64)
+		p := make(posting.List, 0, 64)
 		m.put(hash, p)
 		return p
 	}
 	return v
 }
 
-func (m *indexShard) get(hash uint64) postingList {
+func (m *indexShard) get(hash uint64) posting.List {
 	return m.invertedMap[hash]
 }
 
-func (m *indexShard) put(hash uint64, p postingList) {
+func (m *indexShard) put(hash uint64, p posting.List) {
 	m.invertedMap[hash] = p
 }
 
-func (m *indexShard) appen(p postingList, entry posting.EntryInt32) postingList {
+func (m *indexShard) appen(p posting.List, entry posting.EntryInt32) posting.List {
 	p = append(p, entry)
 	return p
 }
@@ -150,13 +150,13 @@ func (k *memoryIndex) MaxKSize() int {
 	return k.maxKSize
 }
 
-func (k *memoryIndex) getPostingLists(size int, labels expr.Assignment) []postingList {
+func (k *memoryIndex) GetPostingLists(size int, labels expr.Assignment) []posting.List {
 	idx := k.sizedIndexes[size]
 	if idx == nil {
 		return nil
 	}
 
-	candidates := make([]postingList, 0, len(labels)+1)
+	candidates := make([]posting.List, 0, len(labels)+1)
 	for _, label := range labels {
 
 		p := idx.Get(label.Name, label.Value)
@@ -169,58 +169,4 @@ func (k *memoryIndex) getPostingLists(size int, labels expr.Assignment) []postin
 		candidates = append(candidates, idx.Get("", ""))
 	}
 	return candidates
-}
-
-// Match finds the matched conjunctions given an assignment.
-func (k *memoryIndex) Match(assignment expr.Assignment) []int {
-	results := make([]int, 0, 1024)
-
-	n := min(len(assignment), k.maxKSize)
-
-	for i := n; i >= 0; i-- {
-		pLists := newPostingLists(k.getPostingLists(i, assignment))
-
-		K := i
-		if K == 0 {
-			K = 1
-		}
-		if pLists.Len() < K {
-			continue
-		}
-
-		pLists.sortByCurrent()
-		for pLists[K-1].current() != posting.EOL {
-			var nextID uint32
-
-			if pLists[0].current().CID() == pLists[K-1].current().CID() {
-
-				if pLists[0].current().Contains() == false {
-					rejectID := pLists[0].current().CID()
-					for L := K; L <= pLists.Len()-1; L++ {
-						if pLists[L].current().CID() == rejectID {
-							pLists[L].skipTo(rejectID + 1)
-						} else {
-							break
-						}
-					}
-
-				} else {
-					results = append(results, int(pLists[K-1].current().CID()))
-				}
-
-				nextID = pLists[K-1].current().CID() + 1
-			} else {
-				nextID = pLists[K-1].current().CID()
-
-			}
-
-			for L := 0; L <= K-1; L++ {
-				pLists[L].skipTo(nextID)
-			}
-			pLists.sortByCurrent()
-		}
-
-	}
-
-	return results
 }

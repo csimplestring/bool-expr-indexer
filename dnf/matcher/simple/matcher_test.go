@@ -1,4 +1,4 @@
-package indexer
+package simple
 
 import (
 	"fmt"
@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/csimplestring/bool-expr-indexer/dnf/expr"
+	"github.com/csimplestring/bool-expr-indexer/dnf/indexer"
 	"github.com/dchest/uniuri"
 	"github.com/stretchr/testify/assert"
 )
@@ -75,10 +76,10 @@ func getTestAssignment(n int, attrs map[string][]string, names []string) expr.As
 	return labels
 }
 
-func getIndexerAndAssignment(conjunctionNum, assignmentNum, assignmentAvgSize int) (Indexer, []expr.Assignment) {
+func getIndexerAndAssignment(conjunctionNum, assignmentNum, assignmentAvgSize int) (indexer.Indexer, []expr.Assignment) {
 	testAttrs, testAttrNames := getTestAttributes()
 
-	k := NewMemoryIndexer()
+	k := indexer.NewMemoryIndexer()
 	for n := 0; n < conjunctionNum; n++ {
 		id := n + 1
 
@@ -113,9 +114,10 @@ func Benchmark_Match_10000_20(b *testing.B) {
 	k, assignments := getIndexerAndAssignment(10000, 10000, 20)
 
 	b.ResetTimer()
+	matcher := &matcher{}
 	var result []int
 	for i := 0; i < b.N; i++ {
-		result = k.Match(assignments[rand.Intn(10000)])
+		result = matcher.Match(k, assignments[rand.Intn(10000)])
 	}
 	benchmarkResults = result
 }
@@ -125,9 +127,10 @@ func Benchmark_Match_100000_20(b *testing.B) {
 	k, assignments := getIndexerAndAssignment(100000, 10000, 20)
 
 	b.ResetTimer()
+	matcher := &matcher{}
 	var result []int
 	for i := 0; i < b.N; i++ {
-		result = k.Match(assignments[rand.Intn(10000)])
+		result = matcher.Match(k, assignments[rand.Intn(10000)])
 	}
 	benchmarkResults = result
 }
@@ -137,9 +140,10 @@ func Benchmark_Match_1000000_20(b *testing.B) {
 	k, assignments := getIndexerAndAssignment(1000000, 10000, 20)
 
 	b.ResetTimer()
+	matcher := &matcher{}
 	var result []int
 	for i := 0; i < b.N; i++ {
-		result = k.Match(assignments[rand.Intn(10000)])
+		result = matcher.Match(k, assignments[rand.Intn(10000)])
 	}
 	benchmarkResults = result
 }
@@ -149,9 +153,10 @@ func Benchmark_Match_10000_30(b *testing.B) {
 	k, assignments := getIndexerAndAssignment(10000, 10000, 30)
 
 	b.ResetTimer()
+	matcher := &matcher{}
 	var result []int
 	for i := 0; i < b.N; i++ {
-		result = k.Match(assignments[rand.Intn(10000)])
+		result = matcher.Match(k, assignments[rand.Intn(10000)])
 	}
 	benchmarkResults = result
 }
@@ -161,9 +166,10 @@ func Benchmark_Match_100000_30(b *testing.B) {
 	k, assignments := getIndexerAndAssignment(100000, 10000, 30)
 
 	b.ResetTimer()
+	matcher := &matcher{}
 	var result []int
 	for i := 0; i < b.N; i++ {
-		result = k.Match(assignments[rand.Intn(10000)])
+		result = matcher.Match(k, assignments[rand.Intn(10000)])
 	}
 	benchmarkResults = result
 }
@@ -173,9 +179,10 @@ func Benchmark_Match_1000000_30(b *testing.B) {
 	k, assignments := getIndexerAndAssignment(1000000, 10000, 30)
 
 	b.ResetTimer()
+	matcher := &matcher{}
 	var result []int
 	for i := 0; i < b.N; i++ {
-		result = k.Match(assignments[rand.Intn(10000)])
+		result = matcher.Match(k, assignments[rand.Intn(10000)])
 	}
 	benchmarkResults = result
 }
@@ -185,9 +192,10 @@ func Benchmark_Match_10000_40(b *testing.B) {
 	k, assignments := getIndexerAndAssignment(10000, 10000, 40)
 
 	b.ResetTimer()
+	matcher := &matcher{}
 	var result []int
 	for i := 0; i < b.N; i++ {
-		result = k.Match(assignments[rand.Intn(10000)])
+		result = matcher.Match(k, assignments[rand.Intn(10000)])
 	}
 	benchmarkResults = result
 }
@@ -197,9 +205,10 @@ func Benchmark_Match_100000_40(b *testing.B) {
 	k, assignments := getIndexerAndAssignment(100000, 10000, 40)
 
 	b.ResetTimer()
+	matcher := &matcher{}
 	var result []int
 	for i := 0; i < b.N; i++ {
-		result = k.Match(assignments[rand.Intn(10000)])
+		result = matcher.Match(k, assignments[rand.Intn(10000)])
 	}
 	benchmarkResults = result
 }
@@ -209,16 +218,17 @@ func Benchmark_Match_1000000_40(b *testing.B) {
 	k, assignments := getIndexerAndAssignment(1000000, 10000, 40)
 
 	b.ResetTimer()
+	matcher := &matcher{}
 	var result []int
 	for i := 0; i < b.N; i++ {
-		result = k.Match(assignments[rand.Intn(10000)])
+		result = matcher.Match(k, assignments[rand.Intn(10000)])
 	}
 	benchmarkResults = result
 }
 
 func Test_kIndexTable_Match(t *testing.T) {
 
-	k := NewMemoryIndexer()
+	k := indexer.NewMemoryIndexer()
 
 	k.Add(expr.NewConjunction(
 		1,
@@ -312,7 +322,9 @@ func Test_kIndexTable_Match(t *testing.T) {
 	// assert.Equal(t, 4, twoIdx.imap[fmt.Sprintf("%d:%d", attrName["gender"], genderValue["M"])].Items[1].CID)
 	// assert.Equal(t, true, twoIdx.imap[fmt.Sprintf("%d:%d", attrName["gender"], genderValue["M"])].Items[1].Contains)
 
-	matched := k.Match(expr.Assignment{
+	matcher := &matcher{}
+
+	matched := matcher.Match(k, expr.Assignment{
 		expr.Label{Name: "age", Value: "3"},
 		expr.Label{Name: "state", Value: "CA"},
 		expr.Label{Name: "gender", Value: "M"},

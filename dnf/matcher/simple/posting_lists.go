@@ -1,31 +1,15 @@
-package indexer
+package simple
 
 import (
-	"sort"
-
 	"github.com/csimplestring/bool-expr-indexer/dnf/indexer/posting"
 )
 
-// postingList is a list of PostingItem
-type postingList []posting.EntryInt32
-
-func (p postingList) sort() {
-	sort.Slice(p[:], func(i, j int) bool {
-
-		if p[i].CID() != p[j].CID() {
-			return p[i].CID() < p[j].CID()
-		}
-
-		return !p[i].Contains() && p[j].Contains()
-	})
-}
-
 type plistIter struct {
-	ref postingList
+	ref posting.List
 	cur int
 }
 
-func newIterator(ref postingList) *plistIter {
+func newIterator(ref posting.List) *plistIter {
 	return &plistIter{
 		ref: ref,
 		cur: 0,
@@ -54,7 +38,7 @@ func (p *plistIter) skipTo(ID uint32) {
 // postingLists is a slice of list iterator
 type postingLists []*plistIter
 
-func newPostingLists(l []postingList) postingLists {
+func newPostingLists(l []posting.List) postingLists {
 	c := make([]*plistIter, len(l))
 
 	for i, v := range l {

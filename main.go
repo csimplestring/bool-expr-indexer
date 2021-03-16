@@ -8,6 +8,7 @@ import (
 
 	"github.com/csimplestring/bool-expr-indexer/dnf/expr"
 	"github.com/csimplestring/bool-expr-indexer/dnf/indexer"
+	"github.com/csimplestring/bool-expr-indexer/dnf/matcher/simple"
 	"github.com/dchest/uniuri"
 	"github.com/pkg/profile"
 )
@@ -119,9 +120,8 @@ func main() {
 
 	defer profile.Start(profile.CPUProfile).Stop()
 
+	sm := simple.New()
 	for i := 0; i < 10000; i++ {
-
-		k.Match(assignments[i])
-
+		sm.Match(k, assignments[i])
 	}
 }

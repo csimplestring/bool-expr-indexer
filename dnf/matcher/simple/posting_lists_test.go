@@ -1,4 +1,4 @@
-package indexer
+package simple
 
 import (
 	"testing"
@@ -7,35 +7,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_postingList(t *testing.T) {
-
-	e1, _ := posting.NewEntryInt32(3, true, 0)
-	e2, _ := posting.NewEntryInt32(1, true, 0)
-	e3, _ := posting.NewEntryInt32(2, true, 0)
-	e4, _ := posting.NewEntryInt32(2, false, 0)
-
-	p := postingList{e1, e2, e3, e4}
-
-	p.sort()
-
-	assert.Equal(t, uint32(1), p[0].CID())
-	assert.Equal(t, uint32(2), p[1].CID())
-	assert.Equal(t, uint32(2), p[2].CID())
-	assert.Equal(t, uint32(3), p[3].CID())
-
-	assert.Equal(t, true, p[0].Contains())
-	assert.Equal(t, false, p[1].Contains())
-	assert.Equal(t, true, p[2].Contains())
-	assert.Equal(t, true, p[3].Contains())
-}
-
 func Test_plistIter(t *testing.T) {
 	e1, _ := posting.NewEntryInt32(1, true, 0)
 	e2, _ := posting.NewEntryInt32(2, true, 0)
 	e3, _ := posting.NewEntryInt32(3, true, 0)
 	e4, _ := posting.NewEntryInt32(3, false, 0)
 
-	p := postingList{e1, e2, e3, e4}
+	p := posting.List{e1, e2, e3, e4}
 
 	iter := newIterator(p)
 	assert.Equal(t, e1, iter.current())
@@ -60,12 +38,12 @@ func Test_postingLists(t *testing.T) {
 	e3, _ := posting.NewEntryInt32(3, true, 0)
 	e4, _ := posting.NewEntryInt32(3, false, 0)
 
-	p1 := postingList{e1}
-	p2 := postingList{e2}
-	p3 := postingList{e3}
-	p4 := postingList{e4}
+	p1 := posting.List{e1}
+	p2 := posting.List{e2}
+	p3 := posting.List{e3}
+	p4 := posting.List{e4}
 
-	plists := newPostingLists([]postingList{p4, p3, p2, p1})
+	plists := newPostingLists([]posting.List{p4, p3, p2, p1})
 	plists.sortByCurrent()
 
 	assert.Equal(t, p1, plists[0].ref)
