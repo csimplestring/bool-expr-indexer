@@ -52,19 +52,24 @@ func (p postingLists) Len() int {
 }
 
 func (p postingLists) sortByCurrent() {
-	// we implement the selective sort by own because:
+	// we implement the insertion sort by own because:
 	// 1. the size of postingLists is usually small and the changes of position happens not frequently
 	// 2. the built-in sort.Sort function takes much time and extra allocation happens, benchmark shows 5x times slower
-	for i := 0; i < len(p)-1; i++ {
-		min, index := p[i], i
-		for j := i + 1; j < len(p); j++ {
-			if p[j].current().CID() < min.current().CID() || (p[j].current().CID() == min.current().CID() && !p[j].current().Contains() && min.current().Contains()) {
-				min, index = p[j], j
-			}
+	p.insertionSort()
+}
 
-		}
-		if i != index {
-			p[i], p[index] = p[index], p[i]
+func (p postingLists) insertionSort() {
+	var n = len(p)
+	for i := 1; i < n; i++ {
+		j := i
+		for j > 0 {
+			a := p[j-1].current()
+			b := p[j].current()
+
+			if a.CID() > b.CID() || (a.CID() == b.CID()) && a.Contains() && !b.Contains() {
+				p[j-1], p[j] = p[j], p[j-1]
+			}
+			j = j - 1
 		}
 	}
 }
