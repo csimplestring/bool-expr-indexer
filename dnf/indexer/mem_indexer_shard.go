@@ -11,7 +11,6 @@ type indexShard struct {
 	conjunctionSize int
 	zeroKey         uint64
 	invertedMap     map[uint64]*Record
-	scorer          Scorer
 	hash            maphash.Hash
 }
 
@@ -27,7 +26,6 @@ func newIndexShard(ksize int, scorer Scorer) *indexShard {
 		zeroKey:         zeroKey,
 		conjunctionSize: ksize,
 		hash:            hasher,
-		scorer:          scorer,
 		invertedMap:     make(map[uint64]*Record),
 	}
 }
