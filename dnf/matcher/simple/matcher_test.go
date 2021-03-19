@@ -79,7 +79,7 @@ func getTestAssignment(n int, attrs map[string][]string, names []string) expr.As
 func getIndexerAndAssignment(conjunctionNum, assignmentNum, assignmentAvgSize int) (indexer.Indexer, []expr.Assignment) {
 	testAttrs, testAttrNames := getTestAttributes()
 
-	k := indexer.NewMemoryIndexer(nil)
+	k := indexer.NewMemoryIndexer()
 	for n := 0; n < conjunctionNum; n++ {
 		id := n + 1
 
@@ -228,7 +228,7 @@ func Benchmark_Match_1000000_40(b *testing.B) {
 
 func Test_kIndexTable_Match(t *testing.T) {
 
-	k := indexer.NewMemoryIndexer(nil)
+	k := indexer.NewMemoryIndexer()
 
 	k.Add(expr.NewConjunction(
 		1,

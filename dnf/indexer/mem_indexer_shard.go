@@ -14,7 +14,7 @@ type indexShard struct {
 	hash            maphash.Hash
 }
 
-func newIndexShard(ksize int, scorer Scorer) *indexShard {
+func newIndexShard(ksize int) *indexShard {
 	// init a hasher
 	var hasher maphash.Hash
 	hasher.Reset()

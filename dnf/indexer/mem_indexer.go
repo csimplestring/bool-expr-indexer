@@ -7,15 +7,13 @@ import (
 // memoryIndexer implements the Indexer interface and stores all the entries in memory.
 type memoryIndexer struct {
 	maxKSize     int
-	scorer       Scorer
 	sizedIndexes map[int]*indexShard
 }
 
 // NewMemoryIndexer create a memory stored indexer
-func NewMemoryIndexer(scorer Scorer) Indexer {
+func NewMemoryIndexer() Indexer {
 	return &memoryIndexer{
 		maxKSize:     0,
-		scorer:       scorer,
 		sizedIndexes: make(map[int]*indexShard),
 	}
 }
@@ -29,7 +27,7 @@ func (k *memoryIndexer) Add(c *expr.Conjunction) {
 
 	kidx, exist := k.sizedIndexes[ksize]
 	if !exist {
-		kidx = newIndexShard(ksize, k.scorer)
+		kidx = newIndexShard(ksize)
 		k.sizedIndexes[ksize] = kidx
 	}
 
