@@ -1,6 +1,7 @@
 package simple
 
 import (
+	"github.com/csimplestring/bool-expr-indexer/dnf/indexer"
 	"github.com/csimplestring/bool-expr-indexer/dnf/indexer/posting"
 )
 
@@ -38,11 +39,15 @@ func (p *plistIter) skipTo(ID uint32) {
 // postingLists is a slice of list iterator
 type postingLists []*plistIter
 
-func newPostingLists(l []posting.List) postingLists {
-	c := make([]*plistIter, len(l))
+func newPostingLists(
+	records []*indexer.Record,
+	// l []posting.List
+) postingLists {
 
-	for i, v := range l {
-		c[i] = newIterator(v)
+	c := make([]*plistIter, len(records))
+
+	for i, v := range records {
+		c[i] = newIterator(v.PostingList)
 	}
 	return c
 }

@@ -3,6 +3,7 @@ package simple
 import (
 	"testing"
 
+	"github.com/csimplestring/bool-expr-indexer/dnf/indexer"
 	"github.com/csimplestring/bool-expr-indexer/dnf/indexer/posting"
 	"github.com/stretchr/testify/assert"
 )
@@ -43,7 +44,13 @@ func Test_postingLists(t *testing.T) {
 	p3 := posting.List{e3}
 	p4 := posting.List{e4}
 
-	plists := newPostingLists([]posting.List{p4, p3, p2, p1})
+	plists := newPostingLists([]*indexer.Record{
+		{PostingList: p4},
+		{PostingList: p3},
+		{PostingList: p2},
+		{PostingList: p1},
+	},
+	)
 	plists.sortByCurrent()
 
 	assert.Equal(t, p1, plists[0].ref)

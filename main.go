@@ -81,7 +81,7 @@ func main() {
 
 	testAttrs, attrNames := getTestAttributes()
 
-	k := indexer.NewMemoryIndexer()
+	k := indexer.NewMemoryIndexer(indexer.NewMapScorer())
 
 	printMemUsage()
 
