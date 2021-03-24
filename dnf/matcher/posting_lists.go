@@ -1,19 +1,33 @@
-package simple
+package matcher
 
 import (
 	"github.com/csimplestring/bool-expr-indexer/dnf/indexer"
 	"github.com/csimplestring/bool-expr-indexer/dnf/indexer/posting"
+	"github.com/csimplestring/bool-expr-indexer/dnf/scorer"
 )
 
 type plistIter struct {
-	ref posting.List
-	cur int
+	name  string
+	value string
+	ub    int
+	ref   posting.List
+	cur   int
 }
 
 func newIterator(ref posting.List) *plistIter {
 	return &plistIter{
 		ref: ref,
 		cur: 0,
+	}
+}
+
+func newScoredIterator(name, value string, ub int, ref posting.List) *plistIter {
+	return &plistIter{
+		name:  name,
+		value: value,
+		ub:    ub,
+		ref:   ref,
+		cur:   0,
 	}
 }
 
@@ -41,13 +55,18 @@ type postingLists []*plistIter
 
 func newPostingLists(
 	records []*indexer.Record,
-	// l []posting.List
+	scorer scorer.Scorer,
 ) postingLists {
 
 	c := make([]*plistIter, len(records))
 
 	for i, v := range records {
-		c[i] = newIterator(v.PostingList)
+		if scorer != nil {
+			ub := scorer.GetUB(v.Key, v.Value)
+			c[i] = newScoredIterator(v.Key, v.Value, ub, v.PostingList)
+		} else {
+			c[i] = newIterator(v.PostingList)
+		}
 	}
 	return c
 }

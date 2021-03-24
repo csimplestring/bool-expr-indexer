@@ -1,4 +1,4 @@
-package simple
+package matcher
 
 import (
 	"fmt"
@@ -9,6 +9,7 @@ import (
 
 	"github.com/csimplestring/bool-expr-indexer/dnf/expr"
 	"github.com/csimplestring/bool-expr-indexer/dnf/indexer"
+	"github.com/csimplestring/bool-expr-indexer/dnf/scorer"
 	"github.com/dchest/uniuri"
 	"github.com/stretchr/testify/assert"
 )
@@ -233,54 +234,64 @@ func Test_kIndexTable_Match(t *testing.T) {
 	k.Add(expr.NewConjunction(
 		1,
 		[]*expr.Attribute{
-			{Name: "age", Values: []string{"3"}, Contains: true},
-			{Name: "state", Values: []string{"NY"}, Contains: true},
+			{Name: "age", Values: []string{"3"}, Contains: true, Weights: []uint32{1}},
+			{Name: "state", Values: []string{"NY"}, Contains: true, Weights: []uint32{40}},
 		},
 	))
 
 	k.Add(expr.NewConjunction(
 		2,
 		[]*expr.Attribute{
-			{Name: "age", Values: []string{"3"}, Contains: true},
-			{Name: "gender", Values: []string{"F"}, Contains: true},
+			{Name: "age", Values: []string{"3"}, Contains: true, Weights: []uint32{1}},
+			{Name: "gender", Values: []string{"F"}, Contains: true, Weights: []uint32{3}},
 		},
 	))
 
 	k.Add(expr.NewConjunction(
 		3,
 		[]*expr.Attribute{
-			{Name: "age", Values: []string{"3"}, Contains: true},
-			{Name: "gender", Values: []string{"M"}, Contains: true},
-			{Name: "state", Values: []string{"CA"}, Contains: false},
+			{Name: "age", Values: []string{"3"}, Contains: true, Weights: []uint32{2}},
+			{Name: "gender", Values: []string{"M"}, Contains: true, Weights: []uint32{5}},
+			{Name: "state", Values: []string{"CA"}, Contains: false, Weights: []uint32{0}},
 		},
 	))
 
 	k.Add(expr.NewConjunction(
 		4,
 		[]*expr.Attribute{
-			{Name: "state", Values: []string{"CA"}, Contains: true},
-			{Name: "gender", Values: []string{"M"}, Contains: true},
+			{Name: "state", Values: []string{"CA"}, Contains: true, Weights: []uint32{15}},
+			{Name: "gender", Values: []string{"M"}, Contains: true, Weights: []uint32{9}},
 		},
 	))
 
 	k.Add(expr.NewConjunction(
 		5,
 		[]*expr.Attribute{
-			{Name: "age", Values: []string{"3", "4"}, Contains: true},
+			{Name: "age", Values: []string{"3", "4"}, Contains: true, Weights: []uint32{1, 5}},
 		},
 	))
 
 	k.Add(expr.NewConjunction(
 		6,
 		[]*expr.Attribute{
-			{Name: "state", Values: []string{"CA", "NY"}, Contains: false},
+			{Name: "state", Values: []string{"CA", "NY"}, Contains: false, Weights: []uint32{0, 0}},
 		},
 	))
 
 	k.Build()
 
+	scoreMap := scorer.NewMapScorer()
+	scoreMap.SetUB("state", "CA", 2)
+	scoreMap.SetUB("state", "NY", 5)
+	scoreMap.SetUB("age", "3", 1)
+	scoreMap.SetUB("age", "4", 3)
+	scoreMap.SetUB("gender", "F", 2)
+	scoreMap.SetUB("gender", "M", 1)
+
 	assert.Equal(t, 2, k.MaxKSize())
-	matcher := &matcher{}
+	matcher := &matcher{
+		scorer: scoreMap,
+	}
 
 	matched := matcher.Match(k, expr.Assignment{
 		expr.Label{Name: "age", Value: "3"},
@@ -297,4 +308,11 @@ func Test_kIndexTable_Match(t *testing.T) {
 	})
 
 	assert.ElementsMatch(t, []int{1, 2, 5}, matched)
+
+	matched = matcher.MatchTopN(1, k, expr.Assignment{
+		expr.Label{Name: "age", Value: "3", Weight: 8},
+		expr.Label{Name: "state", Value: "NY", Weight: 10},
+		expr.Label{Name: "gender", Value: "F", Weight: 9},
+	})
+	assert.ElementsMatch(t, []int{1}, matched)
 }

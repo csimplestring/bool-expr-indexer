@@ -13,5 +13,6 @@ package expr
 type Attribute struct {
 	Name     string
 	Values   []string
+	Weights  []uint32
 	Contains bool
 }

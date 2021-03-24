@@ -1,4 +1,4 @@
-package simple
+package matcher
 
 import (
 	"testing"
@@ -50,6 +50,7 @@ func Test_postingLists(t *testing.T) {
 		{PostingList: p2},
 		{PostingList: p1},
 	},
+		nil,
 	)
 	plists.sortByCurrent()
 

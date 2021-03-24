@@ -68,13 +68,18 @@ func (m *indexShard) createIfAbsent(hash uint64, name, value string) *Record {
 func (m *indexShard) Add(c *expr.Conjunction) error {
 
 	for _, attr := range c.Attributes {
-		for _, value := range attr.Values {
+		for i, value := range attr.Values {
 
 			hash := m.hashKey(attr.Name, value)
 
 			r := m.createIfAbsent(hash, attr.Name, value)
 
-			entry, err := posting.NewEntryInt32(uint32(c.ID), attr.Contains, 0)
+			score := uint32(0)
+			if len(attr.Weights) != 0 {
+				score = attr.Weights[i]
+			}
+
+			entry, err := posting.NewEntryInt32(uint32(c.ID), attr.Contains, score)
 			if err != nil {
 				return err
 			}
