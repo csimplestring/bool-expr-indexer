@@ -8,6 +8,23 @@ type Item interface {
 	UUID() uint64
 }
 
+type IntItem struct {
+	Val   int
+	Prior int
+}
+
+func (i *IntItem) Value() interface{} {
+	return i.Val
+}
+
+func (i *IntItem) Priority() int {
+	return i.Prior
+}
+
+func (i *IntItem) UUID() uint64 {
+	return uint64(i.Val)
+}
+
 type MinMaxPriorityQueue interface {
 	Push(Item)
 	PeekMin() Item

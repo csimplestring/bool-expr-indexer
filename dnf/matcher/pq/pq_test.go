@@ -6,33 +6,16 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type intItem struct {
-	v int
-	p int
-}
-
-func (i *intItem) Value() interface{} {
-	return i.v
-}
-
-func (i *intItem) Priority() int {
-	return i.p
-}
-
-func (i *intItem) UUID() uint64 {
-	return uint64(i.v)
-}
-
 func TestNew(t *testing.T) {
 
 	pq := New(5)
 
 	num := []int{5, 1, 4, 3, 2}
-	items := make([]*intItem, 5)
+	items := make([]*IntItem, 5)
 	for i := 0; i < 5; i++ {
-		items[i] = &intItem{
-			v: num[i],
-			p: num[i],
+		items[i] = &IntItem{
+			Val:   num[i],
+			Prior: num[i],
 		}
 	}
 
@@ -52,16 +35,16 @@ func TestNew(t *testing.T) {
 	assert.Equal(t, 4, pq.PeekMax().Value())
 
 	// len = 4
-	pq.Push(&intItem{v: 6, p: 6})
+	pq.Push(&IntItem{Val: 6, Prior: 6})
 	assert.Equal(t, 2, pq.PeekMin().Value())
 	assert.Equal(t, 6, pq.PeekMax().Value())
 
-	pq.Push(&intItem{v: 5, p: 100})
+	pq.Push(&IntItem{Val: 5, Prior: 100})
 	assert.Equal(t, 2, pq.PeekMin().Value())
 	assert.Equal(t, 5, pq.PeekMax().Value())
 
-	pq.Push(&intItem{v: 7, p: 7})
-	pq.Push(&intItem{v: 8, p: 8})
+	pq.Push(&IntItem{Val: 7, Prior: 7})
+	pq.Push(&IntItem{Val: 8, Prior: 8})
 	assert.Equal(t, 5, pq.PeekMax().Value())
 	assert.Equal(t, 4, pq.PeekMin().Value())
 

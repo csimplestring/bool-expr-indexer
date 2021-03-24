@@ -10,78 +10,13 @@ import (
 	"github.com/csimplestring/bool-expr-indexer/dnf/scorer"
 )
 
-type Matcher interface {
-	Match(indexer indexer.Indexer, assignment expr.Assignment) []int
-}
-
-func New() *matcher {
-	return &matcher{}
-}
-
-type matcher struct {
-	scorer scorer.Scorer
-}
-
-func (m *matcher) Match(indexer indexer.Indexer, assignment expr.Assignment) []int {
-	results := make([]int, 0, 1024)
-
-	n := min(len(assignment), indexer.MaxKSize())
-
-	for i := n; i >= 0; i-- {
-		pLists := newPostingLists(indexer.Get(i, assignment), nil)
-
-		K := i
-		if K == 0 {
-			K = 1
-		}
-		if pLists.Len() < K {
-			continue
-		}
-
-		pLists.sortByCurrent()
-		for pLists[K-1].current() != posting.EOL {
-			var nextID uint32
-
-			if pLists[0].current().CID() == pLists[K-1].current().CID() {
-
-				if pLists[0].current().Contains() == false {
-					rejectID := pLists[0].current().CID()
-					for L := K; L <= pLists.Len()-1; L++ {
-						if pLists[L].current().CID() == rejectID {
-							pLists[L].skipTo(rejectID + 1)
-						} else {
-							break
-						}
-					}
-
-				} else {
-					results = append(results, int(pLists[K-1].current().CID()))
-				}
-
-				nextID = pLists[K-1].current().CID() + 1
-			} else {
-				nextID = pLists[K-1].current().CID()
-
-			}
-
-			for L := 0; L <= K-1; L++ {
-				pLists[L].skipTo(nextID)
-			}
-			pLists.sortByCurrent()
-		}
-
-	}
-
-	return results
-}
-
-type ubCalculator struct {
+type ranker struct {
 	assignment    expr.Assignment
 	sWeightLookup map[string]int
 }
 
-func newUBCalculator(assignment expr.Assignment) *ubCalculator {
-	u := &ubCalculator{
+func newRanker(assignment expr.Assignment) *ranker {
+	u := &ranker{
 		assignment: assignment,
 	}
 
@@ -94,12 +29,12 @@ func newUBCalculator(assignment expr.Assignment) *ubCalculator {
 	return u
 }
 
-func (u *ubCalculator) formatKey(name, value string) string {
+func (u *ranker) formatKey(name, value string) string {
 	return name + ":" + value
 }
 
 // lists must be sorted
-func (u *ubCalculator) conjunctionUB(K int, lists postingLists) int {
+func (u *ranker) conjunctionUB(K int, lists postingLists) int {
 
 	score := 0
 	for i := 0; i <= K && i < lists.Len(); i++ {
@@ -112,7 +47,7 @@ func (u *ubCalculator) conjunctionUB(K int, lists postingLists) int {
 	return score
 }
 
-func (u *ubCalculator) listUB(topN int, lists postingLists) int {
+func (u *ranker) listUB(topN int, lists postingLists) int {
 
 	scores := make([]int, lists.Len())
 	for i, list := range lists {
@@ -132,36 +67,33 @@ func (u *ubCalculator) listUB(topN int, lists postingLists) int {
 	return totalUB
 }
 
-type intItem struct {
-	v int
-	p int
-}
-
-func (i *intItem) Value() interface{} {
-	return i.v
-}
-
-func (i *intItem) Priority() int {
-	return i.p
-}
-
-func (i *intItem) UUID() uint64 {
-	return uint64(i.v)
-}
-
 func extractIDs(q pq.MinMaxPriorityQueue) []int {
 	ids := make([]int, q.Len())
 	i := 0
 	for q.Len() != 0 {
-		ids[i] = q.PopMin().(*intItem).Value().(int)
+		ids[i] = q.PopMin().(*pq.IntItem).Value().(int)
 		i++
 	}
 	return ids
 }
 
-func (m *matcher) MatchTopN(topN int, indexer indexer.Indexer, assignment expr.Assignment) []int {
+type TopNMatcher interface {
+	MatchTopN(topN int, indexer indexer.Indexer, assignment expr.Assignment) []int
+}
+
+func NewTopN(s scorer.Scorer) TopNMatcher {
+	return &topNMatcher{
+		scorer: s,
+	}
+}
+
+type topNMatcher struct {
+	scorer scorer.Scorer
+}
+
+func (m *topNMatcher) MatchTopN(topN int, indexer indexer.Indexer, assignment expr.Assignment) []int {
 	results := make([]int, 0, 1024)
-	ubCalculator := newUBCalculator(assignment)
+	ubCalculator := newRanker(assignment)
 	q := pq.New(topN)
 
 	n := min(len(assignment), indexer.MaxKSize())
@@ -185,6 +117,7 @@ func (m *matcher) MatchTopN(topN int, indexer indexer.Indexer, assignment expr.A
 		pLists.sortByCurrent()
 		for pLists[K-1].current() != posting.EOL {
 			conjunctionUB := ubCalculator.conjunctionUB(K-1, pLists)
+
 			if q.Len() == topN && q.PeekMin().Priority() > conjunctionUB {
 				nextID := pLists[K-1].current().CID() + 1
 				for L := 0; L <= K-1; L++ {
@@ -209,7 +142,7 @@ func (m *matcher) MatchTopN(topN int, indexer indexer.Indexer, assignment expr.A
 					}
 
 				} else {
-					q.Push(&intItem{v: int(pLists[K-1].current().CID()), p: conjunctionUB})
+					q.Push(&pq.IntItem{Val: int(pLists[K-1].current().CID()), Prior: conjunctionUB})
 					results = append(results, int(pLists[K-1].current().CID()))
 				}
 

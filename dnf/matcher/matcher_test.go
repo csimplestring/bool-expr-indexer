@@ -115,7 +115,7 @@ func Benchmark_Match_10000_20(b *testing.B) {
 	k, assignments := getIndexerAndAssignment(10000, 10000, 20)
 
 	b.ResetTimer()
-	matcher := &matcher{}
+	matcher := &allMatcher{}
 	var result []int
 	for i := 0; i < b.N; i++ {
 		result = matcher.Match(k, assignments[rand.Intn(10000)])
@@ -128,7 +128,7 @@ func Benchmark_Match_100000_20(b *testing.B) {
 	k, assignments := getIndexerAndAssignment(100000, 10000, 20)
 
 	b.ResetTimer()
-	matcher := &matcher{}
+	matcher := &allMatcher{}
 	var result []int
 	for i := 0; i < b.N; i++ {
 		result = matcher.Match(k, assignments[rand.Intn(10000)])
@@ -141,7 +141,7 @@ func Benchmark_Match_1000000_20(b *testing.B) {
 	k, assignments := getIndexerAndAssignment(1000000, 10000, 20)
 
 	b.ResetTimer()
-	matcher := &matcher{}
+	matcher := &allMatcher{}
 	var result []int
 	for i := 0; i < b.N; i++ {
 		result = matcher.Match(k, assignments[rand.Intn(10000)])
@@ -154,7 +154,7 @@ func Benchmark_Match_10000_30(b *testing.B) {
 	k, assignments := getIndexerAndAssignment(10000, 10000, 30)
 
 	b.ResetTimer()
-	matcher := &matcher{}
+	matcher := &allMatcher{}
 	var result []int
 	for i := 0; i < b.N; i++ {
 		result = matcher.Match(k, assignments[rand.Intn(10000)])
@@ -167,7 +167,7 @@ func Benchmark_Match_100000_30(b *testing.B) {
 	k, assignments := getIndexerAndAssignment(100000, 10000, 30)
 
 	b.ResetTimer()
-	matcher := &matcher{}
+	matcher := &allMatcher{}
 	var result []int
 	for i := 0; i < b.N; i++ {
 		result = matcher.Match(k, assignments[rand.Intn(10000)])
@@ -180,7 +180,7 @@ func Benchmark_Match_1000000_30(b *testing.B) {
 	k, assignments := getIndexerAndAssignment(1000000, 10000, 30)
 
 	b.ResetTimer()
-	matcher := &matcher{}
+	matcher := &allMatcher{}
 	var result []int
 	for i := 0; i < b.N; i++ {
 		result = matcher.Match(k, assignments[rand.Intn(10000)])
@@ -193,7 +193,7 @@ func Benchmark_Match_10000_40(b *testing.B) {
 	k, assignments := getIndexerAndAssignment(10000, 10000, 40)
 
 	b.ResetTimer()
-	matcher := &matcher{}
+	matcher := &allMatcher{}
 	var result []int
 	for i := 0; i < b.N; i++ {
 		result = matcher.Match(k, assignments[rand.Intn(10000)])
@@ -206,7 +206,7 @@ func Benchmark_Match_100000_40(b *testing.B) {
 	k, assignments := getIndexerAndAssignment(100000, 10000, 40)
 
 	b.ResetTimer()
-	matcher := &matcher{}
+	matcher := &allMatcher{}
 	var result []int
 	for i := 0; i < b.N; i++ {
 		result = matcher.Match(k, assignments[rand.Intn(10000)])
@@ -219,7 +219,7 @@ func Benchmark_Match_1000000_40(b *testing.B) {
 	k, assignments := getIndexerAndAssignment(1000000, 10000, 40)
 
 	b.ResetTimer()
-	matcher := &matcher{}
+	matcher := &allMatcher{}
 	var result []int
 	for i := 0; i < b.N; i++ {
 		result = matcher.Match(k, assignments[rand.Intn(10000)])
@@ -289,9 +289,7 @@ func Test_kIndexTable_Match(t *testing.T) {
 	scoreMap.SetUB("gender", "M", 1)
 
 	assert.Equal(t, 2, k.MaxKSize())
-	matcher := &matcher{
-		scorer: scoreMap,
-	}
+	matcher := &allMatcher{}
 
 	matched := matcher.Match(k, expr.Assignment{
 		expr.Label{Name: "age", Value: "3"},
@@ -309,7 +307,8 @@ func Test_kIndexTable_Match(t *testing.T) {
 
 	assert.ElementsMatch(t, []int{1, 2, 5}, matched)
 
-	matched = matcher.MatchTopN(1, k, expr.Assignment{
+	topNMatcher := NewTopN(scoreMap)
+	matched = topNMatcher.MatchTopN(1, k, expr.Assignment{
 		expr.Label{Name: "age", Value: "3", Weight: 8},
 		expr.Label{Name: "state", Value: "NY", Weight: 10},
 		expr.Label{Name: "gender", Value: "F", Weight: 9},
