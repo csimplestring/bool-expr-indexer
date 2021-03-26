@@ -1,24 +1,31 @@
 package indexer
 
 import (
+	"errors"
+
 	"github.com/csimplestring/bool-expr-indexer/dnf/expr"
 )
 
-// memoryIndexer implements the Indexer interface and stores all the entries in memory.
-type memoryIndexer struct {
+// readOnlyMemIndexer implements the Indexer interface and stores all the entries in memory.
+type readOnlyMemIndexer struct {
+	isDone       bool
 	maxKSize     int
 	sizedIndexes map[int]*indexShard
 }
 
-// NewMemoryIndexer create a memory stored indexer
-func NewMemoryIndexer() Indexer {
-	return &memoryIndexer{
+// NewReadOnlyMemIndexer create a memory stored indexer. This kind of indexer is not thread-safe but give the best performance!
+func NewReadOnlyMemIndexer() Indexer {
+	return &readOnlyMemIndexer{
+		isDone:       false,
 		maxKSize:     0,
 		sizedIndexes: make(map[int]*indexShard),
 	}
 }
 
-func (k *memoryIndexer) Add(c *expr.Conjunction) error {
+func (k *readOnlyMemIndexer) Add(c *expr.Conjunction) error {
+	if k.isDone {
+		return errors.New("Write operation is not supported in read-only indexer")
+	}
 	ksize := c.GetKSize()
 
 	if k.maxKSize < ksize {
@@ -34,20 +41,21 @@ func (k *memoryIndexer) Add(c *expr.Conjunction) error {
 	return kidx.Add(c)
 }
 
-func (k *memoryIndexer) Build() error {
+func (k *readOnlyMemIndexer) Build() error {
 	for _, v := range k.sizedIndexes {
 		if err := v.Build(); err != nil {
 			return err
 		}
 	}
+	k.isDone = true
 	return nil
 }
 
-func (k *memoryIndexer) MaxKSize() int {
+func (k *readOnlyMemIndexer) MaxKSize() int {
 	return k.maxKSize
 }
 
-func (k *memoryIndexer) Get(size int, labels expr.Assignment) []*Record {
+func (k *readOnlyMemIndexer) Get(size int, labels expr.Assignment) []*Record {
 	idx := k.sizedIndexes[size]
 	if idx == nil {
 		return nil
