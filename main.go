@@ -8,7 +8,7 @@ import (
 
 func main() {
 
-	k, assignments := tools.GetPrefilledIndex(1000, 100000, 10000, 10)
+	k, assignments := tools.GetPrefilledIndex(1000, 1000000, 10000, 10)
 
 	tools.PrintMemUsage()
 

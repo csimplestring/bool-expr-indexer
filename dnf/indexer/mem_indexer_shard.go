@@ -41,6 +41,7 @@ func (m *indexShard) Build() error {
 
 	for _, r := range m.invertedMap {
 		r.PostingList.Sort()
+		r.compact()
 	}
 	return nil
 }
