@@ -1,3 +1,5 @@
+github.com/cespare/xxhash/v2 v2.1.1 h1:6MnRN8NT7+YBpUIWxHtefFZOKTAPgGjpQSxqLNn0+qY=
+github.com/cespare/xxhash/v2 v2.1.1/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
 github.com/csimplestring/deheap v1.0.0 h1:pxoFJwtJCc6pBPAYy1tVB3i7f9IoV79IEvTkkkxyDfg=
 github.com/csimplestring/deheap v1.0.0/go.mod h1:S8atrRxHYxqJw3Hbp8abzwphrKJOLEdZXLW+9GHQTK4=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

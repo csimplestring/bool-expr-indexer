@@ -132,7 +132,7 @@ func Benchmark_Match_1000000_40(b *testing.B) {
 
 func Test_kIndexTable_Match(t *testing.T) {
 
-	k := indexer.NewMemoryIndexer()
+	k := indexer.NewReadOnlyMemIndexer()
 
 	k.Add(expr.NewConjunction(
 		1,
