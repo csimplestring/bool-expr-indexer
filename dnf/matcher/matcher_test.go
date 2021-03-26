@@ -2,6 +2,7 @@ package matcher
 
 import (
 	"math/rand"
+	"sync"
 	"testing"
 
 	"github.com/csimplestring/bool-expr-indexer/dnf/expr"
@@ -128,6 +129,25 @@ func Benchmark_Match_1000000_40(b *testing.B) {
 		result = matcher.Match(k, assignments[rand.Intn(10000)])
 	}
 	benchmarkResults = result
+}
+
+func Benchmark_Concurrent_Match_10000_40(b *testing.B) {
+
+	k, assignments := tools.GetPrefilledIndex(1000, 10000, 10000, 40)
+
+	b.ResetTimer()
+	matcher := &allMatcher{}
+	var result []int
+	wg := sync.WaitGroup{}
+	for i := 0; i < b.N; i++ {
+		wg.Add(1)
+		go func() {
+			result = matcher.Match(k, assignments[rand.Intn(10000)])
+			wg.Done()
+		}()
+	}
+	benchmarkResults = result
+	wg.Wait()
 }
 
 func Test_kIndexTable_Match(t *testing.T) {

@@ -1,40 +1,38 @@
 package indexer
 
 import (
-	"hash/maphash"
-
 	"github.com/csimplestring/bool-expr-indexer/dnf/expr"
 	"github.com/csimplestring/bool-expr-indexer/dnf/indexer/posting"
 )
 
 type indexShard struct {
 	conjunctionSize int
-	zeroKey         uint64
-	invertedMap     map[uint64]*Record
-	hash            maphash.Hash
+	zeroKey         string
+	invertedMap     map[string]*Record
+	//hash            maphash.Hash
 }
 
 func newIndexShard(ksize int) *indexShard {
 	// init a hasher
-	var hasher maphash.Hash
-	hasher.Reset()
-	hasher.WriteString("")
-	hasher.WriteString("")
-	zeroKey := hasher.Sum64()
+	// var hasher maphash.Hash
+	// hasher.Reset()
+	// hasher.WriteString("")
+	// hasher.WriteString("")
+	// zeroKey := hasher.Sum64()
 
 	return &indexShard{
-		zeroKey:         zeroKey,
+		zeroKey:         ":",
 		conjunctionSize: ksize,
-		hash:            hasher,
-		invertedMap:     make(map[uint64]*Record),
+		//hash:            hasher,
+		invertedMap: make(map[string]*Record),
 	}
 }
 
-func (m *indexShard) hashKey(name string, value string) uint64 {
-	m.hash.Reset()
-	m.hash.WriteString(name)
-	m.hash.WriteString(value)
-	return m.hash.Sum64()
+func (m *indexShard) hashKey(name string, value string) string {
+	// m.hash.Reset()
+	// m.hash.WriteString(name)
+	// m.hash.WriteString(value)
+	return name + ":" + value
 }
 
 func (m *indexShard) Build() error {
@@ -51,7 +49,7 @@ func (m *indexShard) Get(name string, value string) *Record {
 	return m.invertedMap[h]
 }
 
-func (m *indexShard) createIfAbsent(hash uint64, name, value string) *Record {
+func (m *indexShard) createIfAbsent(hash string, name, value string) *Record {
 	v := m.invertedMap[hash]
 
 	if v == nil {
