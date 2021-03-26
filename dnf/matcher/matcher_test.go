@@ -131,9 +131,9 @@ func Benchmark_Match_1000000_40(b *testing.B) {
 	benchmarkResults = result
 }
 
-func Benchmark_Concurrent_Match_10000_40(b *testing.B) {
+func Benchmark_Concurrent_Match_1000000_40(b *testing.B) {
 
-	k, assignments := tools.GetPrefilledIndex(1000, 10000, 10000, 40)
+	k, assignments := tools.GetPrefilledIndex(1000, 1000000, 10000, 40)
 
 	b.ResetTimer()
 	matcher := &allMatcher{}
@@ -150,9 +150,9 @@ func Benchmark_Concurrent_Match_10000_40(b *testing.B) {
 	wg.Wait()
 }
 
-func Test_kIndexTable_Match(t *testing.T) {
+func Test_Concurrent_IndexTable_Match(t *testing.T) {
 
-	k := indexer.NewReadOnlyMemIndexer()
+	k := indexer.NewMemIndexer()
 
 	k.Add(expr.NewConjunction(
 		1,
