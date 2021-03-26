@@ -8,6 +8,6 @@ import (
 type Indexer interface {
 	Build() error
 	MaxKSize() int
-	Add(c *expr.Conjunction)
+	Add(c *expr.Conjunction) error
 	Get(conjunctionSize int, labels expr.Assignment) []*Record
 }

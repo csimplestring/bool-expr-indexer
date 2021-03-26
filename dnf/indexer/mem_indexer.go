@@ -18,7 +18,7 @@ func NewMemoryIndexer() Indexer {
 	}
 }
 
-func (k *memoryIndexer) Add(c *expr.Conjunction) {
+func (k *memoryIndexer) Add(c *expr.Conjunction) error {
 	ksize := c.GetKSize()
 
 	if k.maxKSize < ksize {
@@ -31,7 +31,7 @@ func (k *memoryIndexer) Add(c *expr.Conjunction) {
 		k.sizedIndexes[ksize] = kidx
 	}
 
-	kidx.Add(c)
+	return kidx.Add(c)
 }
 
 func (k *memoryIndexer) Build() error {
