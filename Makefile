@@ -47,7 +47,7 @@ go-test:
 
 go-bench:
 	@echo "  >  Running benchmarks..."
-	go test -bench=. ./...
+	go test -bench=. ./... -test.timeout=0
 	
 go-generate:
 	@echo "  >  Generating dependency files..."
