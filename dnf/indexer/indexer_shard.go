@@ -6,16 +6,20 @@ import (
 	"github.com/csimplestring/bool-expr-indexer/dnf/indexer/posting"
 )
 
+const zeroKey string = ":"
+
+// indexShard stores the posting indexes for all the conjunctions with the same size.
 type indexShard struct {
 	conjunctionSize int
 	zeroKey         string
 	invertedMap     *hashmap.HashMap
 }
 
+// newIndexShard creates a new indexShard.
 func newIndexShard(ksize int) *indexShard {
 
 	return &indexShard{
-		zeroKey:         ":",
+		zeroKey:         zeroKey,
 		conjunctionSize: ksize,
 		invertedMap:     &hashmap.HashMap{},
 	}
@@ -45,8 +49,8 @@ func (m *indexShard) Get(name string, value string) *Record {
 }
 
 func (m *indexShard) createIfAbsent(hash string, name, value string) *Record {
-	key := m.hashKey(name, value)
-	v, _ := m.invertedMap.GetOrInsert(key, &Record{
+
+	v, _ := m.invertedMap.GetOrInsert(hash, &Record{
 		PostingList: make(posting.List, 0, 64),
 		Key:         name,
 		Value:       value,
@@ -76,7 +80,7 @@ func (m *indexShard) Add(c *expr.Conjunction) error {
 
 			r.append(entry)
 
-			// todo: make it concurrent safe
+			// todo: make it concurrent saf
 			m.invertedMap.Set(hash, r)
 		}
 	}
