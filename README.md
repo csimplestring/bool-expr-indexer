@@ -5,8 +5,12 @@ The boolean expression indexer lib for audience targeting in online advertisemen
 - scoring pruning (Done)
 - logging monitoring 
 - lock for RW indexing
-- computation/storage separation: different index-store options: redis, memory
+    - is it really necessary? roll-out deployment may be better, not hurting performance
+
 - HA configuration distributed
+    - partitioning by geo or other key?
+    - wal log, deep storage 
 - http, grpc api
 - web UI
 - plugin: CDC read
+
