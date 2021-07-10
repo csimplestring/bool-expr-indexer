@@ -1,16 +1,19 @@
-The boolean expression indexer lib for audience targeting in online advertisement.
+Roadmap:
 
+core component
+- refine code, more tests, more benchmark, more abstraction
+- load, update seperate
 
+use go-kit
 
-- scoring pruning (Done)
-- logging monitoring 
-- lock for RW indexing
-    - is it really necessary? roll-out deployment may be better, not hurting performance
+sharding proxy 
 
-- HA configuration distributed
-    - partitioning by geo or other key?
-    - wal log, deep storage 
-- http, grpc api
-- web UI
-- plugin: CDC read
+HA configure
+- master/slave? 
 
+Deployment
+- rollout deployment -- linkerd 
+
+web UI
+
+incremental update
