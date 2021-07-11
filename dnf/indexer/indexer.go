@@ -15,17 +15,18 @@ type Indexer interface {
 // memIndexer implements the Indexer interface and stores all the entries in memory.
 type memIndexer struct {
 	maxKSize     int
-	sizedIndexes map[int]*indexShard
+	sizedIndexes map[int]shard
 }
 
 // NewMemIndexer create a memory stored indexer. This kind of indexer is thread-safe.
 func NewMemIndexer() Indexer {
 	return &memIndexer{
 		maxKSize:     0,
-		sizedIndexes: make(map[int]*indexShard),
+		sizedIndexes: make(map[int]shard),
 	}
 }
 
+// Add conjunction into indexer.
 func (k *memIndexer) Add(c *expr.Conjunction) error {
 	ksize := c.GetKSize()
 
@@ -35,13 +36,14 @@ func (k *memIndexer) Add(c *expr.Conjunction) error {
 
 	kidx, exist := k.sizedIndexes[ksize]
 	if !exist {
-		kidx = newIndexShard(ksize)
+		kidx = newMapShard(ksize)
 		k.sizedIndexes[ksize] = kidx
 	}
 
 	return kidx.Add(c)
 }
 
+// Build finalise the build-up of indexer by calling the Build on each shards.
 func (k *memIndexer) Build() error {
 	for _, v := range k.sizedIndexes {
 		if err := v.Build(); err != nil {
@@ -51,10 +53,12 @@ func (k *memIndexer) Build() error {
 	return nil
 }
 
+// MaxKSize returns the max K-size of the conjunctions stored in indexer.
 func (k *memIndexer) MaxKSize() int {
 	return k.maxKSize
 }
 
+// Get returns the list of Record, based on size and labels.
 func (k *memIndexer) Get(size int, labels expr.Assignment) []*Record {
 	idx := k.sizedIndexes[size]
 	if idx == nil {

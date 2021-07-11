@@ -1,41 +1,43 @@
 package indexer
 
 import (
-	"os"
-
 	"github.com/csimplestring/bool-expr-indexer/dnf/expr"
 	"github.com/csimplestring/bool-expr-indexer/dnf/indexer/posting"
 )
 
 const zeroKey string = ":"
 
+// shard is a sub-map of indexer, which only stores the conjunctions with same size.
 type shard interface {
-	Load(f os.File)
 	Get(name string, value string) *Record
+	Build() error
+	Add(c *expr.Conjunction) error
 }
 
-// indexShard stores the posting indexes for all the conjunctions with the same size.
-type indexShard struct {
+// mapShard implements shard, stores the posting indexes for all the conjunctions with the same size.
+type mapShard struct {
 	conjunctionSize int
 	zeroKey         string
 	invertedMap     map[string]*Record
 }
 
-// newIndexShard creates a new indexShard.
-func newIndexShard(ksize int) *indexShard {
+// newMapShard creates a new mapShard.
+func newMapShard(ksize int) *mapShard {
 
-	return &indexShard{
+	return &mapShard{
 		zeroKey:         zeroKey,
 		conjunctionSize: ksize,
 		invertedMap:     make(map[string]*Record),
 	}
 }
 
-func (m *indexShard) hashKey(name string, value string) string {
+// hashKey concats the name:value as hash key.
+func (m *mapShard) hashKey(name string, value string) string {
 	return name + ":" + value
 }
 
-func (m *indexShard) Build() error {
+// Build finalise the posting lists in shard, sort and compact each post list.
+func (m *mapShard) Build() error {
 
 	for _, r := range m.invertedMap {
 		r.PostingList.Sort()
@@ -44,7 +46,8 @@ func (m *indexShard) Build() error {
 	return nil
 }
 
-func (m *indexShard) Get(name string, value string) *Record {
+// Get returns Record based on name:value
+func (m *mapShard) Get(name string, value string) *Record {
 	v, ok := m.invertedMap[m.hashKey(name, value)]
 	if !ok {
 		return nil
@@ -53,7 +56,8 @@ func (m *indexShard) Get(name string, value string) *Record {
 	return v
 }
 
-func (m *indexShard) createIfAbsent(hash string, name, value string) *Record {
+// createIfAbsent
+func (m *mapShard) createIfAbsent(hash string, name, value string) *Record {
 
 	if v, found := m.invertedMap[hash]; found {
 		return v
@@ -68,7 +72,8 @@ func (m *indexShard) createIfAbsent(hash string, name, value string) *Record {
 	return m.invertedMap[hash]
 }
 
-func (m *indexShard) Add(c *expr.Conjunction) error {
+// Add conjunction into a shard.
+func (m *mapShard) Add(c *expr.Conjunction) error {
 
 	for _, attr := range c.Attributes {
 		for i, value := range attr.Values {
@@ -89,7 +94,6 @@ func (m *indexShard) Add(c *expr.Conjunction) error {
 
 			r.append(entry)
 
-			// todo: make it concurrent saf
 			m.invertedMap[hash] = r
 		}
 	}
