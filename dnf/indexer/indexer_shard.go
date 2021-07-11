@@ -1,18 +1,24 @@
 package indexer
 
 import (
-	"github.com/cornelk/hashmap"
+	"os"
+
 	"github.com/csimplestring/bool-expr-indexer/dnf/expr"
 	"github.com/csimplestring/bool-expr-indexer/dnf/indexer/posting"
 )
 
 const zeroKey string = ":"
 
+type shard interface {
+	Load(f os.File)
+	Get(name string, value string) *Record
+}
+
 // indexShard stores the posting indexes for all the conjunctions with the same size.
 type indexShard struct {
 	conjunctionSize int
 	zeroKey         string
-	invertedMap     *hashmap.HashMap
+	invertedMap     map[string]*Record
 }
 
 // newIndexShard creates a new indexShard.
@@ -21,7 +27,7 @@ func newIndexShard(ksize int) *indexShard {
 	return &indexShard{
 		zeroKey:         zeroKey,
 		conjunctionSize: ksize,
-		invertedMap:     &hashmap.HashMap{},
+		invertedMap:     make(map[string]*Record),
 	}
 }
 
@@ -31,8 +37,7 @@ func (m *indexShard) hashKey(name string, value string) string {
 
 func (m *indexShard) Build() error {
 
-	for next := range m.invertedMap.Iter() {
-		r := next.Value.(*Record)
+	for _, r := range m.invertedMap {
 		r.PostingList.Sort()
 		r.compact()
 	}
@@ -40,23 +45,27 @@ func (m *indexShard) Build() error {
 }
 
 func (m *indexShard) Get(name string, value string) *Record {
-	v, ok := m.invertedMap.GetStringKey(m.hashKey(name, value))
+	v, ok := m.invertedMap[m.hashKey(name, value)]
 	if !ok {
 		return nil
 	}
 
-	return v.(*Record)
+	return v
 }
 
 func (m *indexShard) createIfAbsent(hash string, name, value string) *Record {
 
-	v, _ := m.invertedMap.GetOrInsert(hash, &Record{
+	if v, found := m.invertedMap[hash]; found {
+		return v
+	}
+
+	m.invertedMap[hash] = &Record{
 		PostingList: make(posting.List, 0, 64),
 		Key:         name,
 		Value:       value,
-	})
+	}
 
-	return v.(*Record)
+	return m.invertedMap[hash]
 }
 
 func (m *indexShard) Add(c *expr.Conjunction) error {
@@ -81,7 +90,7 @@ func (m *indexShard) Add(c *expr.Conjunction) error {
 			r.append(entry)
 
 			// todo: make it concurrent saf
-			m.invertedMap.Set(hash, r)
+			m.invertedMap[hash] = r
 		}
 	}
 
@@ -93,7 +102,7 @@ func (m *indexShard) Add(c *expr.Conjunction) error {
 			return err
 		}
 		r.append(entry)
-		m.invertedMap.Set(m.zeroKey, r)
+		m.invertedMap[m.zeroKey] = r
 	}
 
 	return nil
