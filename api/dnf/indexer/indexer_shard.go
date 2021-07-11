@@ -1,8 +1,8 @@
 package indexer
 
 import (
-	"github.com/csimplestring/bool-expr-indexer/dnf/expr"
-	"github.com/csimplestring/bool-expr-indexer/dnf/indexer/posting"
+	"github.com/csimplestring/bool-expr-indexer/api/dnf/expr"
+	"github.com/csimplestring/bool-expr-indexer/api/dnf/indexer/posting"
 )
 
 const zeroKey string = ":"

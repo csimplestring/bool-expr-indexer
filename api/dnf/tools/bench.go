@@ -6,8 +6,8 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/csimplestring/bool-expr-indexer/dnf/expr"
-	"github.com/csimplestring/bool-expr-indexer/dnf/indexer"
+	"github.com/csimplestring/bool-expr-indexer/api/dnf/expr"
+	"github.com/csimplestring/bool-expr-indexer/api/dnf/indexer"
 	"github.com/dchest/uniuri"
 )
 

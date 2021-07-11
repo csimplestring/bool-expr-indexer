@@ -3,7 +3,7 @@ package matcher
 import (
 	"sort"
 
-	"github.com/csimplestring/bool-expr-indexer/dnf/expr"
+	"github.com/csimplestring/bool-expr-indexer/api/dnf/expr"
 )
 
 type ranker struct {

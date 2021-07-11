@@ -1,6 +1,6 @@
 package indexer
 
-import "github.com/csimplestring/bool-expr-indexer/dnf/indexer/posting"
+import "github.com/csimplestring/bool-expr-indexer/api/dnf/indexer/posting"
 
 // Record represents a key-value entry in indexer shard.
 type Record struct {

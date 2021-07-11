@@ -3,8 +3,8 @@ package matcher
 import (
 	"testing"
 
-	"github.com/csimplestring/bool-expr-indexer/dnf/indexer"
-	"github.com/csimplestring/bool-expr-indexer/dnf/indexer/posting"
+	"github.com/csimplestring/bool-expr-indexer/api/dnf/indexer"
+	"github.com/csimplestring/bool-expr-indexer/api/dnf/indexer/posting"
 	"github.com/stretchr/testify/assert"
 )
 

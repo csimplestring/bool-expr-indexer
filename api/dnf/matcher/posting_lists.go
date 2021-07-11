@@ -1,9 +1,9 @@
 package matcher
 
 import (
-	"github.com/csimplestring/bool-expr-indexer/dnf/indexer"
-	"github.com/csimplestring/bool-expr-indexer/dnf/indexer/posting"
-	"github.com/csimplestring/bool-expr-indexer/dnf/scorer"
+	"github.com/csimplestring/bool-expr-indexer/api/dnf/indexer"
+	"github.com/csimplestring/bool-expr-indexer/api/dnf/indexer/posting"
+	"github.com/csimplestring/bool-expr-indexer/api/dnf/scorer"
 )
 
 type plistIter struct {

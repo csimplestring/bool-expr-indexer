@@ -5,10 +5,10 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/csimplestring/bool-expr-indexer/dnf/expr"
-	"github.com/csimplestring/bool-expr-indexer/dnf/indexer"
-	"github.com/csimplestring/bool-expr-indexer/dnf/scorer"
-	"github.com/csimplestring/bool-expr-indexer/dnf/tools"
+	"github.com/csimplestring/bool-expr-indexer/api/dnf/expr"
+	"github.com/csimplestring/bool-expr-indexer/api/dnf/indexer"
+	"github.com/csimplestring/bool-expr-indexer/api/dnf/scorer"
+	"github.com/csimplestring/bool-expr-indexer/api/dnf/tools"
 	"github.com/stretchr/testify/assert"
 )
 

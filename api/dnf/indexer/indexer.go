@@ -1,7 +1,7 @@
 package indexer
 
 import (
-	"github.com/csimplestring/bool-expr-indexer/dnf/expr"
+	"github.com/csimplestring/bool-expr-indexer/api/dnf/expr"
 )
 
 // Indexer defines the top level indexer interface
