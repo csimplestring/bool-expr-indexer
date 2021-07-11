@@ -12,15 +12,11 @@ It is an important component in online computational advertising system. As ment
 
 In a typical advertising management system, the following hierarchy models are used:
 
-Advertisers
-
-|__ LineItem 
-
-|__ InsertionOrder 
-
-|__ Campaign
-
-|__ Creative Banners With Targeting Condition
+    Advertisers
+    |__ LineItem 
+        |__ InsertionOrder 
+            |__ Campaign
+                |__ Creative Banners With Targeting Condition
 
 ### Ad selector in RTB
 
@@ -49,13 +45,21 @@ This library is developed for the above scenarios. The following features are su
 Total number of expressions, value size                              
 
 Benchmark_Match_10000_20-12                       106482             10142 ns/op
+
 Benchmark_Match_100000_20-12                       70419             14749 ns/op
+
 Benchmark_Match_1000000_20-12                      14438             87884 ns/op
+
 Benchmark_Match_10000_30-12                        80452             15832 ns/op
+
 Benchmark_Match_100000_30-12                       61867             20770 ns/op
+
 Benchmark_Match_1000000_30-12                      10000            103594 ns/op
+
 Benchmark_Match_10000_40-12                        61221             20778 ns/op
+
 Benchmark_Match_100000_40-12                       49161             25129 ns/op
+
 Benchmark_Match_1000000_40-12                      10000            110132 ns/op
 
 Memory usage: 1 million of expressions are indexed and it takes 100 MB on average.
