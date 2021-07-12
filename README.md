@@ -66,6 +66,77 @@ Memory usage: 1 million of expressions are indexed and it takes 100 MB on averag
 
 ## usage
 
+``` Go
+    k := indexer.NewMemIndexer()
+
+	k.Add(expr.NewConjunction(
+		1,
+		[]*expr.Attribute{
+			{Name: "age", Values: []string{"3"}, Contains: true, Weights: []uint32{1}},
+			{Name: "state", Values: []string{"NY"}, Contains: true, Weights: []uint32{40}},
+		},
+	))
+
+	k.Add(expr.NewConjunction(
+		2,
+		[]*expr.Attribute{
+			{Name: "age", Values: []string{"3"}, Contains: true, Weights: []uint32{1}},
+			{Name: "gender", Values: []string{"F"}, Contains: true, Weights: []uint32{3}},
+		},
+	))
+
+	k.Add(expr.NewConjunction(
+		3,
+		[]*expr.Attribute{
+			{Name: "age", Values: []string{"3"}, Contains: true, Weights: []uint32{2}},
+			{Name: "gender", Values: []string{"M"}, Contains: true, Weights: []uint32{5}},
+			{Name: "state", Values: []string{"CA"}, Contains: false, Weights: []uint32{0}},
+		},
+	))
+
+	k.Add(expr.NewConjunction(
+		4,
+		[]*expr.Attribute{
+			{Name: "state", Values: []string{"CA"}, Contains: true, Weights: []uint32{15}},
+			{Name: "gender", Values: []string{"M"}, Contains: true, Weights: []uint32{9}},
+		},
+	))
+
+	k.Add(expr.NewConjunction(
+		5,
+		[]*expr.Attribute{
+			{Name: "age", Values: []string{"3", "4"}, Contains: true, Weights: []uint32{1, 5}},
+		},
+	))
+
+	k.Add(expr.NewConjunction(
+		6,
+		[]*expr.Attribute{
+			{Name: "state", Values: []string{"CA", "NY"}, Contains: false, Weights: []uint32{0, 0}},
+		},
+	))
+
+	k.Build()
+
+    matcher := &allMatcher{}
+
+	matched := matcher.Match(k, expr.Assignment{
+		expr.Label{Name: "age", Value: "3"},
+		expr.Label{Name: "state", Value: "CA"},
+		expr.Label{Name: "gender", Value: "M"},
+	})
+
+	assert.ElementsMatch(t, []int{4, 5}, matched)
+
+	matched = matcher.Match(k, expr.Assignment{
+		expr.Label{Name: "age", Value: "3"},
+		expr.Label{Name: "state", Value: "NY"},
+		expr.Label{Name: "gender", Value: "F"},
+	})
+
+	assert.ElementsMatch(t, []int{1, 2, 5}, matched)
+```
+
 see matcher_test.go 
 
  
