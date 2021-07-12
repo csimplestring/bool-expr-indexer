@@ -10,7 +10,14 @@ A Go implementation of the core algorithm in paper <[Indexing Boolean Expression
 ## usage 
 
 ``` Go
-    k := indexer.NewMemIndexer()
+
+import 
+	"github.com/csimplestring/bool-expr-indexer/api/dnf/expr"
+	"github.com/csimplestring/bool-expr-indexer/api/dnf/indexer"
+	"github.com/stretchr/testify/assert"
+)
+
+    	k := indexer.NewMemIndexer()
 
 	k.Add(expr.NewConjunction(
 		1,
@@ -61,7 +68,7 @@ A Go implementation of the core algorithm in paper <[Indexing Boolean Expression
 
 	k.Build()
 
-    matcher := &allMatcher{}
+    	matcher := &allMatcher{}
 
 	matched := matcher.Match(k, expr.Assignment{
 		expr.Label{Name: "age", Value: "3"},
@@ -118,7 +125,7 @@ This library is developed for the above scenarios. The following features are su
 
 ## Benchmark
 
-Total number of expressions| operations within 1s |  op per ns |                         
+Total number of expressions - size of key | operations within 1s |  op per ns |                         
 |---:|---:|---:|
 | Benchmark_Match_10000_20-12         |              106482  |            10142 ns/op |
 | Benchmark_Match_100000_20-12          |             70419     |        14749 ns/op|
