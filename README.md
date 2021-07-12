@@ -20,11 +20,11 @@ In a typical advertising management system, the following hierarchy models are u
 
 ### Ad selector in RTB
 
-In the RTB or similar environment, when a bidding request comes, usually it comes with some user-profile context(in the paper, it is called ***assignment***). The Ad server then needs to quickly find the matched creative banners that match the targeting condition(in the paper, it is expressed as ***conjunctions***).  A naive way is iterate all the banners and compare the user-profile with targeting condition one-by-one, which is very slow when there are millions of banners in the system, however the whole RTB workflow must be done with 100 ms.
+In the RTB or similar environment, when a bidding request comes, usually it comes with some user-profile context(in the paper, it is called ***assignment***). The Ad server then needs to quickly find the matched creative banners that match the targeting condition(in the paper, it is expressed as ***conjunctions***).  A naive way is to iterate all the banners and compare the user-profile with targeting condition one-by-one, which is very slow when there are millions of banners in the system, however the whole RTB workflow must be done with 100 ms.
 
 ### User segmentation in DMP
 
-In a DMP environment, all the collected user data shall be process, enriched and aggregated in nearly real-time. One key problem is to quickly identify a user belongs to which group, based on pre-defined group condition. 
+In a DMP environment, all the collected user data shall be processed, enriched and aggregated in nearly real-time. One key problem is to quickly identify a user belongs to which group, based on pre-defined group condition. 
 
 This library is developed for the above scenarios. The following features are supported
 
@@ -38,7 +38,7 @@ This library is developed for the above scenarios. The following features are su
 
 - TopN match (ranking based)
 
-    It returns the TopN matched expression ids, based on an adopted WAND algorithm. Note that the caller has to provider the upper bound and score of each conjunction, usually can be calculated in a Spark job. 
+    It returns the TopN matched expression ids, based on an adopted WAND algorithm. Note that the caller has to provide the upper bound and score of each conjunction, usually can be calculated in a Spark job. 
 
 ## Benchmark
 
