@@ -1,5 +1,12 @@
 # Boolean Expression Indexer Go library
 
+[![GitHub issues](https://img.shields.io/github/issues/csimplestring/bool-expr-indexer?style=for-the-badge)](https://github.com/csimplestring/bool-expr-indexer/issues)
+[![GitHub stars](https://img.shields.io/github/stars/csimplestring/bool-expr-indexer?style=for-the-badge)](https://github.com/csimplestring/bool-expr-indexer/stargazers)
+[![GitHub license](https://img.shields.io/github/license/csimplestring/bool-expr-indexer?style=for-the-badge)](https://github.com/csimplestring/bool-expr-indexer/blob/master/LICENSE)
+[![Go Report Card](https://goreportcard.com/badge/github.com/csimplestring/bool-expr-indexer?style=for-the-badge)](https://goreportcard.com/report/github.com/csimplestring/bool-expr-indexer)
+
+
+
 A Go implementation of the core algorithm in paper <[Indexing Boolean Expression](https://theory.stanford.edu/~sergei/papers/vldb09-indexing.pdf)>, which already supports the following features mentioned in paper:
 
 - DNF algorithm
