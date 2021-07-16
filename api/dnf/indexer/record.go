@@ -24,3 +24,18 @@ func (r *Record) compact() {
 		r.PostingList = compacted
 	}
 }
+
+// copy deep copys the r to a new Record
+func (r *Record) copy() *Record {
+	c := &Record{
+		PostingList: make(posting.List, len(r.PostingList)),
+		Key:         r.Key,
+		Value:       r.Value,
+	}
+
+	for i, p := range r.PostingList {
+		c.PostingList[i] = p
+	}
+
+	return c
+}
