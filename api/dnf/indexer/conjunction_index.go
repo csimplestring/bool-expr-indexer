@@ -13,15 +13,15 @@ type ConjunctionIndex interface {
 	Get(ID int) (*expr.Conjunction, bool)
 }
 
-type conjunctionMap struct {
+type conjunctionIndex struct {
 	m cmap.ConcurrentMap
 }
 
-func (c *conjunctionMap) Set(ID int, conjunction *expr.Conjunction) {
+func (c *conjunctionIndex) Set(ID int, conjunction *expr.Conjunction) {
 	c.m.Set(strconv.Itoa(ID), conjunction)
 }
 
-func (c *conjunctionMap) Get(ID int) (*expr.Conjunction, bool) {
+func (c *conjunctionIndex) Get(ID int) (*expr.Conjunction, bool) {
 	v, exist := c.m.Get(strconv.Itoa(ID))
 	if !exist {
 		return nil, false

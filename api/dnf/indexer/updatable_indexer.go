@@ -6,6 +6,7 @@ import (
 
 	"github.com/csimplestring/bool-expr-indexer/api/dnf/expr"
 	cow "github.com/csimplestring/go-cow-loader"
+	cmap "github.com/orcaman/concurrent-map"
 )
 
 // UpdatableIndexer
@@ -25,7 +26,11 @@ func NewCopyOnWriteIndexer(items []*expr.Conjunction) (*CopyOnWriteIndexer, erro
 		return nil, err
 	}
 
-	u := &CopyOnWriteIndexer{}
+	u := &CopyOnWriteIndexer{
+		conjunctionIndex: &conjunctionIndex{
+			m: cmap.New(),
+		},
+	}
 	u.loader = cow.New(indexV2, 300)
 
 	return u, nil
@@ -56,8 +61,9 @@ func (u *CopyOnWriteIndexer) Add(c *expr.Conjunction) error {
 	})
 }
 
-func (u *CopyOnWriteIndexer) Delete(c *expr.Conjunction) error {
-	if _, exist := u.conjunctionIndex.Get(c.ID); !exist {
+func (u *CopyOnWriteIndexer) Delete(ID int) error {
+	c, exist := u.conjunctionIndex.Get(ID)
+	if !exist {
 		return fmt.Errorf("conjunction with ID: %d does not exists", c.ID)
 	}
 
@@ -66,6 +72,7 @@ func (u *CopyOnWriteIndexer) Delete(c *expr.Conjunction) error {
 		Data:   c,
 	})
 }
+
 func (u *CopyOnWriteIndexer) Update(c *expr.Conjunction) error {
 	if _, exist := u.conjunctionIndex.Get(c.ID); !exist {
 		return fmt.Errorf("conjunction with ID: %d does not exists", c.ID)
@@ -76,6 +83,7 @@ func (u *CopyOnWriteIndexer) Update(c *expr.Conjunction) error {
 		Data:   c,
 	})
 }
+
 func (u *CopyOnWriteIndexer) Get(conjunctionSize int, labels expr.Assignment) []*Record {
 	idx := u.loader.Reload().(*memIndexV2)
 	return idx.Get(conjunctionSize, labels)
