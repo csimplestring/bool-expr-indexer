@@ -26,7 +26,6 @@ func NewCopyOnWriteIndexer(items []*expr.Conjunction) (*CopyOnWriteIndexer, erro
 
 	u := &CopyOnWriteIndexer{}
 	u.loader = cow.New(indexV2, 300)
-	go u.loader.Start()
 
 	return u, nil
 }
