@@ -2,6 +2,7 @@ package indexer
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/csimplestring/bool-expr-indexer/api/dnf/expr"
 	cow "github.com/csimplestring/go-cow-loader"
@@ -33,7 +34,8 @@ func NewCopyOnWriteIndexer(items []*expr.Conjunction) (*CopyOnWriteIndexer, erro
 // CopyOnWriteIndexer allows user to update the index. Internally it uses a loader to periodically
 // reload index by applying the ADD/DEL/UPD operations.
 type CopyOnWriteIndexer struct {
-	loader *cow.Reloader
+	loader           *cow.Reloader
+	conjunctionIndex ConjunctionIndex
 }
 
 func (u *CopyOnWriteIndexer) MaxKSize() int {
@@ -44,6 +46,10 @@ func (u *CopyOnWriteIndexer) MaxKSize() int {
 // and be applied in a batcch way once the ticker is triggered. So the new item won't be updated immediately but with a
 // lag.
 func (u *CopyOnWriteIndexer) Add(c *expr.Conjunction) error {
+	if _, exist := u.conjunctionIndex.Get(c.ID); exist {
+		return fmt.Errorf("conjunction with ID: %d already exists", c.ID)
+	}
+
 	return u.loader.Accept(&IndexOp{
 		OpType: "add",
 		Data:   c,
@@ -51,12 +57,20 @@ func (u *CopyOnWriteIndexer) Add(c *expr.Conjunction) error {
 }
 
 func (u *CopyOnWriteIndexer) Delete(c *expr.Conjunction) error {
+	if _, exist := u.conjunctionIndex.Get(c.ID); !exist {
+		return fmt.Errorf("conjunction with ID: %d does not exists", c.ID)
+	}
+
 	return u.loader.Accept(&IndexOp{
 		OpType: "delete",
 		Data:   c,
 	})
 }
 func (u *CopyOnWriteIndexer) Update(c *expr.Conjunction) error {
+	if _, exist := u.conjunctionIndex.Get(c.ID); !exist {
+		return fmt.Errorf("conjunction with ID: %d does not exists", c.ID)
+	}
+
 	return u.loader.Accept(&IndexOp{
 		OpType: "update",
 		Data:   c,
@@ -150,6 +164,7 @@ func (k *memIndexV2) Apply(ops []cow.Op) error {
 	for _, op := range ops {
 
 		c := op.Context().(*expr.Conjunction)
+
 		if op.Type() == "add" {
 			k.onAdd(c)
 		} else if op.Type() == "delete" {
@@ -182,6 +197,21 @@ func (k *memIndexV2) onAdd(c *expr.Conjunction) error {
 }
 
 func (k *memIndexV2) onDelete(c *expr.Conjunction) error {
+	ksize := c.GetKSize()
+	kidx, exist := k.sizedIndexes[ksize]
+	if !exist {
+		return fmt.Errorf("illegal state: can not find the index shard with size %d", ksize)
+	}
+
+	for _, a := range c.Attributes {
+		for _, v := range a.Values {
+			if rec := kidx.Get(a.Name, v); rec != nil {
+
+			}
+
+		}
+	}
+
 	return errors.New("not supported yet")
 }
 
