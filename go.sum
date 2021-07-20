@@ -4,6 +4,8 @@ github.com/csimplestring/deheap v1.0.0 h1:pxoFJwtJCc6pBPAYy1tVB3i7f9IoV79IEvTkkk
 github.com/csimplestring/deheap v1.0.0/go.mod h1:S8atrRxHYxqJw3Hbp8abzwphrKJOLEdZXLW+9GHQTK4=
 github.com/csimplestring/go-cow-loader v0.0.1 h1:w2H3K43nZczXSk2ok7pL5w6uYFptA+XrdKssgcdzHZo=
 github.com/csimplestring/go-cow-loader v0.0.1/go.mod h1:ZEN+naLXi19hMZ+3aQxR+w5Q8dhApYJtwbaeT6RqwVc=
+github.com/csimplestring/go-cow-loader v0.0.2 h1:RsifWgvcsdHdK8VbJlZe1OKeOIUouXqVVI8Ip0UrNa0=
+github.com/csimplestring/go-cow-loader v0.0.2/go.mod h1:ZEN+naLXi19hMZ+3aQxR+w5Q8dhApYJtwbaeT6RqwVc=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/dchest/siphash v1.1.0 h1:1Rs9eTUlZLPBEvV+2sTaM8O0NWn0ppbgqS7p11aWawI=

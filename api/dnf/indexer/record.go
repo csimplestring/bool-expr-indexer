@@ -25,7 +25,7 @@ func (r *Record) compact() {
 	}
 }
 
-// copy deep copys the r to a new Record
+// copy deep copys the r to a new Record.
 func (r *Record) copy() *Record {
 	c := &Record{
 		PostingList: make(posting.List, len(r.PostingList)),
