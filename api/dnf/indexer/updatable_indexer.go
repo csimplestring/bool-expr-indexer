@@ -179,8 +179,6 @@ func (k *memIndexV2) Apply(ops []cow.Op) error {
 }
 
 func (k *memIndexV2) onAdd(c *expr.Conjunction) error {
-	// validate
-
 	ksize := c.GetKSize()
 
 	if k.maxKSize < ksize {
@@ -206,13 +204,12 @@ func (k *memIndexV2) onDelete(c *expr.Conjunction) error {
 	for _, a := range c.Attributes {
 		for _, v := range a.Values {
 			if rec := kidx.Get(a.Name, v); rec != nil {
-
+				rec.PostingList.Remove(c.ID)
 			}
-
 		}
 	}
 
-	return errors.New("not supported yet")
+	return nil
 }
 
 func (k *memIndexV2) onUpdate(c *expr.Conjunction) error {
