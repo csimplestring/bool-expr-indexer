@@ -8,26 +8,34 @@ import (
 type Indexer interface {
 	Build() error
 	MaxKSize() int
-	Add(c *expr.Conjunction) error
 	Get(conjunctionSize int, labels expr.Assignment) []*Record
 }
 
-// memIndexer implements the Indexer interface and stores all the entries in memory.
-type memIndexer struct {
+// MemReadOnlyIndexer implements the Indexer interface and stores all the entries in memory.
+type MemReadOnlyIndexer struct {
 	maxKSize     int
 	sizedIndexes map[int]shard
 }
 
-// NewMemIndexer create a memory stored indexer. This kind of indexer is thread-safe.
-func NewMemIndexer() Indexer {
-	return &memIndexer{
+// NewMemReadOnlyIndexer create a memory stored indexer. This kind of indexer is thread-safe.
+func NewMemReadOnlyIndexer(items []*expr.Conjunction) (*MemReadOnlyIndexer, error) {
+
+	m := &MemReadOnlyIndexer{
 		maxKSize:     0,
 		sizedIndexes: make(map[int]shard),
 	}
+
+	for _, item := range items {
+		if err := m.add(item); err != nil {
+			return nil, err
+		}
+	}
+
+	return m, nil
 }
 
 // Add conjunction into indexer.
-func (k *memIndexer) Add(c *expr.Conjunction) error {
+func (k *MemReadOnlyIndexer) add(c *expr.Conjunction) error {
 	ksize := c.GetKSize()
 
 	if k.maxKSize < ksize {
@@ -44,7 +52,7 @@ func (k *memIndexer) Add(c *expr.Conjunction) error {
 }
 
 // Build finalise the build-up of indexer by calling the Build on each shards.
-func (k *memIndexer) Build() error {
+func (k *MemReadOnlyIndexer) Build() error {
 	for _, v := range k.sizedIndexes {
 		if err := v.Build(); err != nil {
 			return err
@@ -54,12 +62,12 @@ func (k *memIndexer) Build() error {
 }
 
 // MaxKSize returns the max K-size of the conjunctions stored in indexer.
-func (k *memIndexer) MaxKSize() int {
+func (k *MemReadOnlyIndexer) MaxKSize() int {
 	return k.maxKSize
 }
 
 // Get returns the list of Record, based on size and labels.
-func (k *memIndexer) Get(size int, labels expr.Assignment) []*Record {
+func (k *MemReadOnlyIndexer) Get(size int, labels expr.Assignment) []*Record {
 	idx := k.sizedIndexes[size]
 	if idx == nil {
 		return nil

@@ -152,9 +152,9 @@ func Benchmark_Concurrent_Match_1000000_40(b *testing.B) {
 
 func Test_Concurrent_IndexTable_Match(t *testing.T) {
 
-	k := indexer.NewMemIndexer()
+	var conjunctions []*expr.Conjunction
 
-	k.Add(expr.NewConjunction(
+	conjunctions = append(conjunctions, expr.NewConjunction(
 		1,
 		[]*expr.Attribute{
 			{Name: "age", Values: []string{"3"}, Contains: true, Weights: []uint32{1}},
@@ -162,7 +162,7 @@ func Test_Concurrent_IndexTable_Match(t *testing.T) {
 		},
 	))
 
-	k.Add(expr.NewConjunction(
+	conjunctions = append(conjunctions, expr.NewConjunction(
 		2,
 		[]*expr.Attribute{
 			{Name: "age", Values: []string{"3"}, Contains: true, Weights: []uint32{1}},
@@ -170,7 +170,7 @@ func Test_Concurrent_IndexTable_Match(t *testing.T) {
 		},
 	))
 
-	k.Add(expr.NewConjunction(
+	conjunctions = append(conjunctions, expr.NewConjunction(
 		3,
 		[]*expr.Attribute{
 			{Name: "age", Values: []string{"3"}, Contains: true, Weights: []uint32{2}},
@@ -179,7 +179,7 @@ func Test_Concurrent_IndexTable_Match(t *testing.T) {
 		},
 	))
 
-	k.Add(expr.NewConjunction(
+	conjunctions = append(conjunctions, expr.NewConjunction(
 		4,
 		[]*expr.Attribute{
 			{Name: "state", Values: []string{"CA"}, Contains: true, Weights: []uint32{15}},
@@ -187,20 +187,22 @@ func Test_Concurrent_IndexTable_Match(t *testing.T) {
 		},
 	))
 
-	k.Add(expr.NewConjunction(
+	conjunctions = append(conjunctions, expr.NewConjunction(
 		5,
 		[]*expr.Attribute{
 			{Name: "age", Values: []string{"3", "4"}, Contains: true, Weights: []uint32{1, 5}},
 		},
 	))
 
-	k.Add(expr.NewConjunction(
+	conjunctions = append(conjunctions, expr.NewConjunction(
 		6,
 		[]*expr.Attribute{
 			{Name: "state", Values: []string{"CA", "NY"}, Contains: false, Weights: []uint32{0, 0}},
 		},
 	))
 
+	k, err := indexer.NewMemReadOnlyIndexer(conjunctions)
+	assert.NoError(t, err)
 	k.Build()
 
 	scoreMap := scorer.NewMapScorer()
