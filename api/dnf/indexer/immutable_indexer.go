@@ -2,6 +2,8 @@ package indexer
 
 import "github.com/csimplestring/bool-expr-indexer/api/dnf/expr"
 
+var _ Indexer = (*MemReadOnlyIndexer)(nil)
+
 // MemReadOnlyIndexer implements the Indexer interface and stores all the entries in memory.
 type MemReadOnlyIndexer struct {
 	maxKSize     int

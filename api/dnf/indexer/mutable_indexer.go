@@ -9,14 +9,17 @@ import (
 	cmap "github.com/orcaman/concurrent-map"
 )
 
-// UpdatableIndexer
-type UpdatableIndexer interface {
+// MutableIndexer
+type MutableIndexer interface {
 	MaxKSize() int
 	Add(c *expr.Conjunction) error
 	Delete(ID int) error
 	Update(c *expr.Conjunction) error
 	Get(conjunctionSize int, labels expr.Assignment) []*Record
 }
+
+var _ MutableIndexer = (*CopyOnWriteIndexer)(nil)
+var _ Indexer = (*CopyOnWriteIndexer)(nil)
 
 // NewCopyOnWriteIndexer creats a new CopyOnWriteIndexer with given items.
 // It internally uses a loader to periodically reload index.
