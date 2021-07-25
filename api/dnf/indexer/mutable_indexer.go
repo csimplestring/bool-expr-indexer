@@ -28,8 +28,19 @@ func (c *internalCopyOnWriteIndexer) Apply(ops []cow.Op) error {
 }
 
 func (c *internalCopyOnWriteIndexer) Copy() cow.Value {
+	copiedShard := make(map[int]shard, len(c.sizedIndexes))
+	for k, v := range c.sizedIndexes {
+		copiedShard[k] = v.Copy()
+	}
 
-	return nil
+	copiedIndex := &internalCopyOnWriteIndexer{
+		MemReadOnlyIndexer: &MemReadOnlyIndexer{
+			maxKSize:     c.maxKSize,
+			sizedIndexes: copiedShard,
+		},
+	}
+
+	return copiedIndex
 }
 
 // NewCopyOnWriteIndexer creats a new CopyOnWriteIndexer with given items.
