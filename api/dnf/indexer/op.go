@@ -1,10 +1,8 @@
 package indexer
 
-import "github.com/csimplestring/bool-expr-indexer/api/dnf/expr"
-
 type IndexOp struct {
 	OpType string
-	Data   *expr.Conjunction
+	Data   interface{}
 }
 
 func (i *IndexOp) Type() string {

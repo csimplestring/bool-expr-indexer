@@ -8,7 +8,7 @@ import (
 	cmap "github.com/orcaman/concurrent-map"
 )
 
-type ConjunctionIndex interface {
+type ForwardIndex interface {
 	Set(ID int, c *expr.Conjunction)
 	Get(ID int) (*expr.Conjunction, bool)
 }

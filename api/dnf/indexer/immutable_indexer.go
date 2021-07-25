@@ -1,6 +1,8 @@
 package indexer
 
-import "github.com/csimplestring/bool-expr-indexer/api/dnf/expr"
+import (
+	"github.com/csimplestring/bool-expr-indexer/api/dnf/expr"
+)
 
 var _ Indexer = (*MemReadOnlyIndexer)(nil)
 
