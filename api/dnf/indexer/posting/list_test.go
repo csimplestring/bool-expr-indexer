@@ -17,6 +17,14 @@ func Test_postingList(t *testing.T) {
 
 	p.Sort()
 
+	assert.Equal(t, 0, p.indexOf(1))
+	assert.Equal(t, 0, p.lastIndexOf(1))
+	assert.Equal(t, 1, p.indexOf(2))
+	assert.Equal(t, 2, p.lastIndexOf(2))
+	assert.Equal(t, 3, p.indexOf(3))
+	assert.Equal(t, 3, p.lastIndexOf(3))
+	assert.Equal(t, -1, p.indexOf(4))
+
 	assert.Equal(t, uint32(1), p[0].CID())
 	assert.Equal(t, uint32(2), p[1].CID())
 	assert.Equal(t, uint32(2), p[2].CID())
@@ -26,4 +34,7 @@ func Test_postingList(t *testing.T) {
 	assert.Equal(t, false, p[1].Contains())
 	assert.Equal(t, true, p[2].Contains())
 	assert.Equal(t, true, p[3].Contains())
+
+	assert.True(t, p.Remove(2))
+	assert.ElementsMatch(t, p, List{e2, e1})
 }
