@@ -8,7 +8,7 @@ import (
 	cow "github.com/csimplestring/go-cow-loader"
 )
 
-// MutableIndexer
+// MutableIndexer top level interface
 type MutableIndexer interface {
 	MaxKSize() int
 	Add(c *expr.Conjunction) error
@@ -20,10 +20,12 @@ type MutableIndexer interface {
 var _ MutableIndexer = (*CopyOnWriteIndexer)(nil)
 var _ Indexer = (*CopyOnWriteIndexer)(nil)
 
+// internalCopyOnWriteIndexer inherits the MemReadOnlyIndexer, plus Apply and Copy functions/
 type internalCopyOnWriteIndexer struct {
 	*MemReadOnlyIndexer
 }
 
+// Apply applies the ops on itself in the order.
 func (i *internalCopyOnWriteIndexer) Apply(ops []cow.Op) error {
 	for _, op := range ops {
 		opType := op.Type()
@@ -40,6 +42,7 @@ func (i *internalCopyOnWriteIndexer) Apply(ops []cow.Op) error {
 	return errors.New("not implemented")
 }
 
+// add adds a new conjunction into i.
 func (i *internalCopyOnWriteIndexer) add(c *expr.Conjunction) error {
 	if _, exist := i.meta.forwardIdx.Get(c.ID); exist {
 		return fmt.Errorf("Try to add duplicate conjunction with ID %d", c.ID)
@@ -48,6 +51,7 @@ func (i *internalCopyOnWriteIndexer) add(c *expr.Conjunction) error {
 	return i.add(c)
 }
 
+// delette delettes an existing conjunction.
 func (i *internalCopyOnWriteIndexer) delette(ID int) error {
 	c, exist := i.meta.forwardIdx.Get(ID)
 	if !exist {
@@ -66,6 +70,7 @@ func (i *internalCopyOnWriteIndexer) delette(ID int) error {
 	return nil
 }
 
+// Copy deep copy a new internalCopyOnWriteIndexer.
 func (c *internalCopyOnWriteIndexer) Copy() cow.Value {
 	copiedShard := make(map[int]shard, len(c.sizedIndexes))
 	for k, v := range c.sizedIndexes {
@@ -121,6 +126,7 @@ func (u *CopyOnWriteIndexer) Add(c *expr.Conjunction) error {
 	})
 }
 
+// Delete deletes a conjunction by ID.
 func (u *CopyOnWriteIndexer) Delete(ID int) error {
 
 	return u.loader.Accept(&IndexOp{
@@ -129,6 +135,7 @@ func (u *CopyOnWriteIndexer) Delete(ID int) error {
 	})
 }
 
+// Update updates given conjunction.
 func (u *CopyOnWriteIndexer) Update(c *expr.Conjunction) error {
 
 	return u.loader.Accept(&IndexOp{
@@ -137,6 +144,7 @@ func (u *CopyOnWriteIndexer) Update(c *expr.Conjunction) error {
 	})
 }
 
+// Get gets the matched records.
 func (u *CopyOnWriteIndexer) Get(conjunctionSize int, labels expr.Assignment) []*Record {
 	idx := u.loader.Reload().(Indexer)
 	return idx.Get(conjunctionSize, labels)
