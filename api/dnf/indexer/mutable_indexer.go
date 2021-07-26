@@ -2,6 +2,7 @@ package indexer
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/csimplestring/bool-expr-indexer/api/dnf/expr"
 	cow "github.com/csimplestring/go-cow-loader"
@@ -23,8 +24,46 @@ type internalCopyOnWriteIndexer struct {
 	*MemReadOnlyIndexer
 }
 
-func (c *internalCopyOnWriteIndexer) Apply(ops []cow.Op) error {
+func (i *internalCopyOnWriteIndexer) Apply(ops []cow.Op) error {
+	for _, op := range ops {
+		opType := op.Type()
+
+		switch opType {
+		case "add":
+			i.add(op.Context().(*expr.Conjunction))
+		case "delete":
+			i.delette(op.Context().(int))
+		default:
+			return fmt.Errorf("unsupported type: %s", opType)
+		}
+	}
 	return errors.New("not implemented")
+}
+
+func (i *internalCopyOnWriteIndexer) add(c *expr.Conjunction) error {
+	if _, exist := i.meta.forwardIdx.Get(c.ID); exist {
+		return fmt.Errorf("Try to add duplicate conjunction with ID %d", c.ID)
+	}
+
+	return i.add(c)
+}
+
+func (i *internalCopyOnWriteIndexer) delette(ID int) error {
+	c, exist := i.meta.forwardIdx.Get(ID)
+	if !exist {
+		return fmt.Errorf("Try to delete non-existing conjunction with ID %d", ID)
+	}
+
+	shard := i.sizedIndexes[c.GetKSize()]
+	for _, attr := range c.Attributes {
+		for _, val := range attr.Values {
+			name := attr.Name
+			record := shard.Get(name, val)
+			record.PostingList.Remove(ID)
+		}
+	}
+
+	return nil
 }
 
 func (c *internalCopyOnWriteIndexer) Copy() cow.Value {

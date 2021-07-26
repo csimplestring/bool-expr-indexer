@@ -1,13 +1,17 @@
 package indexer
 
 import (
+	"fmt"
+
 	"github.com/csimplestring/bool-expr-indexer/api/dnf/expr"
+	cmap "github.com/orcaman/concurrent-map"
 )
 
 var _ Indexer = (*MemReadOnlyIndexer)(nil)
 
 // MemReadOnlyIndexer implements the Indexer interface and stores all the entries in memory.
 type MemReadOnlyIndexer struct {
+	meta         *metadata
 	maxKSize     int
 	sizedIndexes map[int]shard
 }
@@ -16,6 +20,11 @@ type MemReadOnlyIndexer struct {
 func NewMemReadOnlyIndexer(items []*expr.Conjunction) (*MemReadOnlyIndexer, error) {
 
 	m := &MemReadOnlyIndexer{
+		meta: &metadata{
+			forwardIdx: &forwardIndex{
+				cmap.New(),
+			},
+		},
 		maxKSize:     0,
 		sizedIndexes: make(map[int]shard),
 	}
@@ -31,6 +40,10 @@ func NewMemReadOnlyIndexer(items []*expr.Conjunction) (*MemReadOnlyIndexer, erro
 
 // Add conjunction into indexer.
 func (k *MemReadOnlyIndexer) add(c *expr.Conjunction) error {
+	if _, exist := k.meta.forwardIdx.Get(c.ID); exist {
+		return fmt.Errorf("duplicate conjunction with ID: %d", c.ID)
+	}
+
 	ksize := c.GetKSize()
 
 	if k.maxKSize < ksize {
@@ -43,7 +56,11 @@ func (k *MemReadOnlyIndexer) add(c *expr.Conjunction) error {
 		k.sizedIndexes[ksize] = kidx
 	}
 
-	return kidx.Add(c)
+	if err := kidx.Add(c); err != nil {
+		return err
+	}
+	k.meta.forwardIdx.Set(c.ID, c)
+	return nil
 }
 
 // Build finalise the build-up of indexer by calling the Build on each shards.
