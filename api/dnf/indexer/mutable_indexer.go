@@ -13,7 +13,6 @@ type MutableIndexer interface {
 	MaxKSize() int
 	Add(c *expr.Conjunction) error
 	Delete(ID int) error
-	Update(c *expr.Conjunction) error
 	Get(conjunctionSize int, labels expr.Assignment) []*Record
 }
 
@@ -89,7 +88,7 @@ func (c *internalCopyOnWriteIndexer) Copy() cow.Value {
 
 // NewCopyOnWriteIndexer creats a new CopyOnWriteIndexer with given items.
 // It internally uses a loader to periodically reload index.
-func NewCopyOnWriteIndexer(items []*expr.Conjunction) (*CopyOnWriteIndexer, error) {
+func NewCopyOnWriteIndexer(items []*expr.Conjunction, refreshInterval int) (*CopyOnWriteIndexer, error) {
 	base, err := NewMemReadOnlyIndexer(items)
 	if err != nil {
 		return nil, err
@@ -100,7 +99,7 @@ func NewCopyOnWriteIndexer(items []*expr.Conjunction) (*CopyOnWriteIndexer, erro
 	}
 
 	u := &CopyOnWriteIndexer{}
-	u.loader = cow.New(idx, 300)
+	u.loader = cow.New(idx, refreshInterval)
 
 	return u, nil
 }
@@ -132,15 +131,6 @@ func (u *CopyOnWriteIndexer) Delete(ID int) error {
 	return u.loader.Accept(&IndexOp{
 		OpType: "delete",
 		Data:   ID,
-	})
-}
-
-// Update updates given conjunction.
-func (u *CopyOnWriteIndexer) Update(c *expr.Conjunction) error {
-
-	return u.loader.Accept(&IndexOp{
-		OpType: "update",
-		Data:   c,
 	})
 }
 
