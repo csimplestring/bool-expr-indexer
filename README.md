@@ -1,5 +1,6 @@
 # Boolean Expression Indexer Go library
 
+![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/csimplestring/bool-expr-indexer/Go/master?style=for-the-badge)
 [![GitHub issues](https://img.shields.io/github/issues/csimplestring/bool-expr-indexer?style=for-the-badge)](https://github.com/csimplestring/bool-expr-indexer/issues)
 [![GitHub stars](https://img.shields.io/github/stars/csimplestring/bool-expr-indexer?style=for-the-badge)](https://github.com/csimplestring/bool-expr-indexer/stargazers)
 [![GitHub license](https://img.shields.io/github/license/csimplestring/bool-expr-indexer?style=for-the-badge)](https://github.com/csimplestring/bool-expr-indexer/blob/master/LICENSE)
