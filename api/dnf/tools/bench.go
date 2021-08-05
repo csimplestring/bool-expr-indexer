@@ -79,7 +79,7 @@ func getTestAssignment(n int, attrs map[string][]string, names []string) expr.As
 func GetPrefilledIndex(attributeNum, conjunctionNum, assignmentNum, assignmentAvgSize int) (indexer.Indexer, []expr.Assignment) {
 	testAttrs, testAttrNames := getTestAttributes(attributeNum)
 
-	k := indexer.NewMemIndexer()
+	conjunctions := make([]*expr.Conjunction, conjunctionNum)
 	for n := 0; n < conjunctionNum; n++ {
 		id := n + 1
 
@@ -95,8 +95,10 @@ func GetPrefilledIndex(attributeNum, conjunctionNum, assignmentNum, assignmentAv
 			}
 		}
 
-		k.Add(expr.NewConjunction(id, attrs))
+		conjunctions[n] = expr.NewConjunction(id, attrs)
 	}
+
+	k, _ := indexer.NewMemReadOnlyIndexer(conjunctions)
 	k.Build()
 
 	assignments := make([]expr.Assignment, assignmentNum)

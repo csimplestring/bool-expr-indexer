@@ -12,6 +12,7 @@ type shard interface {
 	Get(name string, value string) *Record
 	Build() error
 	Add(c *expr.Conjunction) error
+	Copy() shard
 }
 
 // mapShard implements shard, stores the posting indexes for all the conjunctions with the same size.
@@ -110,4 +111,18 @@ func (m *mapShard) Add(c *expr.Conjunction) error {
 	}
 
 	return nil
+}
+
+// Copy deep-copys the mapShard
+func (m *mapShard) Copy() shard {
+	c := &mapShard{
+		conjunctionSize: m.conjunctionSize,
+		zeroKey:         m.zeroKey,
+		invertedMap:     make(map[string]*Record, len(m.invertedMap)),
+	}
+	for k, v := range m.invertedMap {
+		c.invertedMap[k] = v.copy()
+	}
+
+	return c
 }

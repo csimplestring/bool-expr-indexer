@@ -12,6 +12,7 @@ A Go implementation of the core algorithm in paper <[Indexing Boolean Expression
 - DNF algorithm
 - Simple match
 - TopN match (ranking based)
+- Online update (Copy-On-Write)
 
 
 ## usage 
@@ -24,9 +25,9 @@ import
 	"github.com/stretchr/testify/assert"
 )
 
-    	k := indexer.NewMemIndexer()
+    var conjunctions []*expr.Conjunction
 
-	k.Add(expr.NewConjunction(
+	conjunctions = append(conjunctions, expr.NewConjunction(
 		1,
 		[]*expr.Attribute{
 			{Name: "age", Values: []string{"3"}, Contains: true, Weights: []uint32{1}},
@@ -34,7 +35,7 @@ import
 		},
 	))
 
-	k.Add(expr.NewConjunction(
+	conjunctions = append(conjunctions, expr.NewConjunction(
 		2,
 		[]*expr.Attribute{
 			{Name: "age", Values: []string{"3"}, Contains: true, Weights: []uint32{1}},
@@ -42,7 +43,7 @@ import
 		},
 	))
 
-	k.Add(expr.NewConjunction(
+	conjunctions = append(conjunctions, expr.NewConjunction(
 		3,
 		[]*expr.Attribute{
 			{Name: "age", Values: []string{"3"}, Contains: true, Weights: []uint32{2}},
@@ -51,7 +52,7 @@ import
 		},
 	))
 
-	k.Add(expr.NewConjunction(
+	conjunctions = append(conjunctions, expr.NewConjunction(
 		4,
 		[]*expr.Attribute{
 			{Name: "state", Values: []string{"CA"}, Contains: true, Weights: []uint32{15}},
@@ -59,23 +60,26 @@ import
 		},
 	))
 
-	k.Add(expr.NewConjunction(
+	conjunctions = append(conjunctions, expr.NewConjunction(
 		5,
 		[]*expr.Attribute{
 			{Name: "age", Values: []string{"3", "4"}, Contains: true, Weights: []uint32{1, 5}},
 		},
 	))
 
-	k.Add(expr.NewConjunction(
+	conjunctions = append(conjunctions, expr.NewConjunction(
 		6,
 		[]*expr.Attribute{
 			{Name: "state", Values: []string{"CA", "NY"}, Contains: false, Weights: []uint32{0, 0}},
 		},
 	))
 
+	// read only indexer, best performance
+	k, err := indexer.NewMemReadOnlyIndexer(conjunctions)
+	assert.NoError(t, err)
 	k.Build()
 
-    	matcher := &allMatcher{}
+    matcher := &allMatcher{}
 
 	matched := matcher.Match(k, expr.Assignment{
 		expr.Label{Name: "age", Value: "3"},
@@ -92,6 +96,31 @@ import
 	})
 
 	assert.ElementsMatch(t, []int{1, 2, 5}, matched)
+
+	// copy on write indexer, you can ADD or DELETE new conjunctions
+	// the refresh interval in second, to control how often to swap the old and new index
+	// usually set it up to 15 minutes, which is ok in most cases.
+	freshInterval := 5
+	k, err := indexer.NewCopyOnWriteIndexer(conjunctions, freshInterval)
+	assert.NoError(t, err)
+
+	k.Delete(4)
+	
+	matched = matcher.Match(k, expr.Assignment{
+		expr.Label{Name: "age", Value: "3"},
+		expr.Label{Name: "state", Value: "CA"},
+		expr.Label{Name: "gender", Value: "M"},
+	})
+	assert.ElementsMatch(t, []int{4, 5}, matched)
+
+	// after 5 seconds, the modifications will be applied.
+	time.Sleep(5 * time.Second)
+	matched = matcher.Match(k, expr.Assignment{
+		expr.Label{Name: "age", Value: "3"},
+		expr.Label{Name: "state", Value: "CA"},
+		expr.Label{Name: "gender", Value: "M"},
+	})
+	assert.ElementsMatch(t, []int{5}, matched)
 ```
 
 see matcher_test.go 
@@ -151,7 +180,6 @@ Memory usage: 1 million of expressions are indexed and it takes 100 MB on averag
 
 This library only implements the core DNF algorithm in that paper. However, it is more useful to use it to build up a production-ready Ad Server. Currently, the indexer does not support online update(all the expressions shall be indexed once in the beginning). Also, the speed will be slow if the expressions number increases. Therefore I plan to support more advanced features soon
 
-- online index update
 - metrics monitoring
 - index partitioning
 - canary rollout deployment
