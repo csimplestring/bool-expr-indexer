@@ -1,7 +1,6 @@
 package indexer
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/csimplestring/bool-expr-indexer/api/dnf/expr"
@@ -38,7 +37,7 @@ func (i *internalCopyOnWriteIndexer) Apply(ops []cow.Op) error {
 			return fmt.Errorf("unsupported type: %s", opType)
 		}
 	}
-	return errors.New("not implemented")
+	return nil
 }
 
 // add adds a new conjunction into i.
@@ -76,8 +75,12 @@ func (c *internalCopyOnWriteIndexer) Copy() cow.Value {
 		copiedShard[k] = v.Copy()
 	}
 
+	meta := c.meta
+	c.meta = nil
+
 	copiedIndex := &internalCopyOnWriteIndexer{
 		MemReadOnlyIndexer: &MemReadOnlyIndexer{
+			meta:         meta,
 			maxKSize:     c.maxKSize,
 			sizedIndexes: copiedShard,
 		},
@@ -94,12 +97,23 @@ func NewCopyOnWriteIndexer(items []*expr.Conjunction, refreshInterval int) (*Cop
 		return nil, err
 	}
 
+	if err := base.Build(); err != nil {
+		return nil, err
+	}
+
 	idx := &internalCopyOnWriteIndexer{
 		base,
 	}
 
 	u := &CopyOnWriteIndexer{}
 	u.loader = cow.New(idx, refreshInterval)
+	errChan := u.loader.Err()
+
+	go func() {
+		for err := range errChan {
+			fmt.Println(err)
+		}
+	}()
 
 	return u, nil
 }
