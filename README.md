@@ -8,7 +8,7 @@
 
 
 
-A Go implementation of the core algorithm in paper <[Indexing Boolean Expression](https://theory.stanford.edu/~sergei/papers/vldb09-indexing.pdf)>, which already supports the following features mentioned in paper:
+A Go implementation of the core algorithm in Standford and Yahoo's paper <[Indexing Boolean Expression](https://theory.stanford.edu/~sergei/papers/vldb09-indexing.pdf)>, which already supports the following features mentioned in paper:
 
 - DNF algorithm
 - Simple match
