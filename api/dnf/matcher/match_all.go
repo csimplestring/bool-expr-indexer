@@ -7,7 +7,7 @@ import (
 )
 
 type AllMatcher interface {
-	Match(indexer indexer.Indexer, assignment expr.Assignment) []int
+	Match(indexer indexer.Indexer, assignment expr.Assignment) ([]int, error)
 }
 
 func New() AllMatcher {
@@ -16,7 +16,11 @@ func New() AllMatcher {
 
 type allMatcher struct{}
 
-func (m *allMatcher) Match(indexer indexer.Indexer, assignment expr.Assignment) []int {
+func (m *allMatcher) Match(indexer indexer.Indexer, assignment expr.Assignment) ([]int, error) {
+	if err := expr.ValidateAssignment(assignment); err != nil {
+		return nil, err
+	}
+
 	results := make([]int, 0, 1024)
 
 	n := min(len(assignment), indexer.MaxKSize())
@@ -66,5 +70,5 @@ func (m *allMatcher) Match(indexer indexer.Indexer, assignment expr.Assignment) 
 
 	}
 
-	return results
+	return results, nil
 }

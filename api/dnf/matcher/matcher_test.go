@@ -23,7 +23,7 @@ func Benchmark_Match_10000_20(b *testing.B) {
 	matcher := &allMatcher{}
 	var result []int
 	for i := 0; i < b.N; i++ {
-		result = matcher.Match(k, assignments[rand.Intn(10000)])
+		result, _ = matcher.Match(k, assignments[rand.Intn(10000)])
 	}
 	benchmarkResults = result
 }
@@ -36,7 +36,7 @@ func Benchmark_Match_100000_20(b *testing.B) {
 	matcher := &allMatcher{}
 	var result []int
 	for i := 0; i < b.N; i++ {
-		result = matcher.Match(k, assignments[rand.Intn(10000)])
+		result, _ = matcher.Match(k, assignments[rand.Intn(10000)])
 	}
 	benchmarkResults = result
 }
@@ -49,7 +49,7 @@ func Benchmark_Match_1000000_20(b *testing.B) {
 	matcher := &allMatcher{}
 	var result []int
 	for i := 0; i < b.N; i++ {
-		result = matcher.Match(k, assignments[rand.Intn(10000)])
+		result, _ = matcher.Match(k, assignments[rand.Intn(10000)])
 	}
 	benchmarkResults = result
 }
@@ -62,7 +62,7 @@ func Benchmark_Match_10000_30(b *testing.B) {
 	matcher := &allMatcher{}
 	var result []int
 	for i := 0; i < b.N; i++ {
-		result = matcher.Match(k, assignments[rand.Intn(10000)])
+		result, _ = matcher.Match(k, assignments[rand.Intn(10000)])
 	}
 	benchmarkResults = result
 }
@@ -75,7 +75,7 @@ func Benchmark_Match_100000_30(b *testing.B) {
 	matcher := &allMatcher{}
 	var result []int
 	for i := 0; i < b.N; i++ {
-		result = matcher.Match(k, assignments[rand.Intn(10000)])
+		result, _ = matcher.Match(k, assignments[rand.Intn(10000)])
 	}
 	benchmarkResults = result
 }
@@ -88,7 +88,7 @@ func Benchmark_Match_1000000_30(b *testing.B) {
 	matcher := &allMatcher{}
 	var result []int
 	for i := 0; i < b.N; i++ {
-		result = matcher.Match(k, assignments[rand.Intn(10000)])
+		result, _ = matcher.Match(k, assignments[rand.Intn(10000)])
 	}
 	benchmarkResults = result
 }
@@ -101,7 +101,7 @@ func Benchmark_Match_10000_40(b *testing.B) {
 	matcher := &allMatcher{}
 	var result []int
 	for i := 0; i < b.N; i++ {
-		result = matcher.Match(k, assignments[rand.Intn(10000)])
+		result, _ = matcher.Match(k, assignments[rand.Intn(10000)])
 	}
 	benchmarkResults = result
 }
@@ -114,7 +114,7 @@ func Benchmark_Match_100000_40(b *testing.B) {
 	matcher := &allMatcher{}
 	var result []int
 	for i := 0; i < b.N; i++ {
-		result = matcher.Match(k, assignments[rand.Intn(10000)])
+		result, _ = matcher.Match(k, assignments[rand.Intn(10000)])
 	}
 	benchmarkResults = result
 }
@@ -127,7 +127,7 @@ func Benchmark_Match_1000000_40(b *testing.B) {
 	matcher := &allMatcher{}
 	var result []int
 	for i := 0; i < b.N; i++ {
-		result = matcher.Match(k, assignments[rand.Intn(10000)])
+		result, _ = matcher.Match(k, assignments[rand.Intn(10000)])
 	}
 	benchmarkResults = result
 }
@@ -143,7 +143,7 @@ func Benchmark_Concurrent_Match_1000000_40(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		wg.Add(1)
 		go func() {
-			result = matcher.Match(k, assignments[rand.Intn(10000)])
+			result, _ = matcher.Match(k, assignments[rand.Intn(10000)])
 			wg.Done()
 		}()
 	}
@@ -217,7 +217,7 @@ func Test_MemReadOnlyIndex_Match(t *testing.T) {
 	assert.Equal(t, 2, k.MaxKSize())
 	matcher := &allMatcher{}
 
-	matched := matcher.Match(k, expr.Assignment{
+	matched, err := matcher.Match(k, expr.Assignment{
 		expr.Label{Name: "age", Value: "3"},
 		expr.Label{Name: "state", Value: "CA"},
 		expr.Label{Name: "gender", Value: "M"},
@@ -225,7 +225,7 @@ func Test_MemReadOnlyIndex_Match(t *testing.T) {
 
 	assert.ElementsMatch(t, []int{4, 5}, matched)
 
-	matched = matcher.Match(k, expr.Assignment{
+	matched, err = matcher.Match(k, expr.Assignment{
 		expr.Label{Name: "age", Value: "3"},
 		expr.Label{Name: "state", Value: "NY"},
 		expr.Label{Name: "gender", Value: "F"},
@@ -309,32 +309,32 @@ func Test_COWIndex_Match(t *testing.T) {
 
 	time.Sleep(1 * time.Second)
 
-	matched := matcher.Match(k, expr.Assignment{
+	matched, err := matcher.Match(k, expr.Assignment{
 		expr.Label{Name: "age", Value: "3"},
 		expr.Label{Name: "state", Value: "CA"},
 		expr.Label{Name: "gender", Value: "M"},
 	})
-
+	assert.NoError(t, err)
 	assert.ElementsMatch(t, []int{4, 5}, matched)
 
 	k.Delete(4)
 
 	time.Sleep(2 * time.Second)
 
-	matched = matcher.Match(k, expr.Assignment{
+	matched, err = matcher.Match(k, expr.Assignment{
 		expr.Label{Name: "age", Value: "3"},
 		expr.Label{Name: "state", Value: "CA"},
 		expr.Label{Name: "gender", Value: "M"},
 	})
-
+	assert.NoError(t, err)
 	assert.ElementsMatch(t, []int{5}, matched)
 
-	matched = matcher.Match(k, expr.Assignment{
+	matched, err = matcher.Match(k, expr.Assignment{
 		expr.Label{Name: "age", Value: "3"},
 		expr.Label{Name: "state", Value: "NY"},
 		expr.Label{Name: "gender", Value: "F"},
 	})
-
+	assert.NoError(t, err)
 	assert.ElementsMatch(t, []int{1, 2, 5}, matched)
 	time.Sleep(1 * time.Second)
 
